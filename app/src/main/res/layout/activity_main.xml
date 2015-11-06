@@ -11,8 +11,10 @@
         android:layout_height="wrap_content"
         android:text="Show Location"
         android:id="@+id/btnShowLocation"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_marginEnd="39dp"
+        android:layout_below="@+id/externalGPSCheckBox"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="36dp" />
 
     <CheckBox
         android:layout_width="wrap_content"
@@ -20,7 +22,65 @@
         android:text="Use external GPS?"
         android:id="@+id/externalGPSCheckBox"
         android:checked="false"
+        android:layout_marginTop="37dp"
         android:layout_alignParentTop="true"
+        android:layout_toStartOf="@+id/btnShowLocation" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="GPS Coordinates"
+        android:id="@+id/GPSCoord"
+        android:layout_below="@+id/btnShowLocation"
+        android:layout_alignStart="@+id/externalGPSCheckBox"
+        android:layout_marginTop="30dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Angles"
+        android:id="@+id/PhoneAngles"
+        android:layout_alignTop="@+id/GPSCoord"
         android:layout_alignStart="@+id/btnShowLocation"
-        android:layout_marginTop="46dp" />
+        android:layout_marginStart="39dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Latitude"
+        android:id="@+id/latitudeText"
+        android:layout_centerVertical="true"
+        android:layout_alignStart="@+id/GPSCoord" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Longitude"
+        android:id="@+id/longitudeText"
+        android:layout_below="@+id/latitudeText"
+        android:layout_alignStart="@+id/latitudeText" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Azimuth"
+        android:id="@+id/azimuthText"
+        android:layout_alignTop="@+id/latitudeText"
+        android:layout_alignStart="@+id/PhoneAngles" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Pitch"
+        android:id="@+id/pitchText"
+        android:layout_alignTop="@+id/longitudeText"
+        android:layout_alignStart="@+id/azimuthText" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Roll"
+        android:id="@+id/rollText"
+        android:layout_below="@+id/pitchText"
+        android:layout_alignStart="@+id/pitchText" />
 </RelativeLayout>

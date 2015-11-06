@@ -33,7 +33,7 @@ public class GPSTracker extends Service implements LocationListener {
 
     // Flag for external gps status
     boolean isExternalGPSEnabled = false;
-    private String EXTERNAL_GPS_PROVIDER = "external_gps";
+    private final String EXTERNAL_GPS_PROVIDER = "external_gps";
 
     boolean canGetLocation = false;
 
@@ -91,6 +91,7 @@ public class GPSTracker extends Service implements LocationListener {
 
             if (!isGPSEnabled && !isNetworkEnabled) {
                 // No GPS or Network, do nothing
+                Log.d("Could not get GPS", "Could not get GPS");
             } else {
                 this.canGetLocation = true;
 
