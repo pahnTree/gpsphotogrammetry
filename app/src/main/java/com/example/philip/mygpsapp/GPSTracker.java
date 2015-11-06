@@ -18,6 +18,7 @@ import android.os.IBinder;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.widget.Toast;
 
 /**
  * Created by Philip on 11/5/2015.
@@ -40,6 +41,7 @@ public class GPSTracker extends Service implements LocationListener {
     Location location;
     double latitude;
     double longitude;
+    double altitude;
 
     // Minimum distance change to update
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 5; // in Meters
@@ -81,13 +83,16 @@ public class GPSTracker extends Service implements LocationListener {
 
         try {
             locationManager = (LocationManager) mContext.getSystemService(LOCATION_SERVICE);
-            locationManager.addTestProvider(EXTERNAL_GPS_PROVIDER, false, false, false, false, true, true, true, Criteria.POWER_HIGH, Criteria.ACCURACY_FINE);
-            LocationProvider customProvider = locationManager.getProvider(EXTERNAL_GPS_PROVIDER);
+            if (locationManager.getProvider(EXTERNAL_GPS_PROVIDER) == null) {
+                locationManager.addTestProvider(EXTERNAL_GPS_PROVIDER, false, false, false, false, true, true, true, Criteria.POWER_HIGH, Criteria.ACCURACY_FINE);
+                locationManager.setTestProviderEnabled(EXTERNAL_GPS_PROVIDER, true);
+            }
             // Getting GPS status
             isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-            // Getting network status
             isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
             isExternalGPSEnabled = locationManager.isProviderEnabled(EXTERNAL_GPS_PROVIDER);
+
+            LocationProvider customProvider = locationManager.getProvider(EXTERNAL_GPS_PROVIDER);
 
             if (!isGPSEnabled && !isNetworkEnabled) {
                 // No GPS or Network, do nothing
@@ -106,8 +111,9 @@ public class GPSTracker extends Service implements LocationListener {
                     if (locationManager != null) {
                         location = locationManager.getLastKnownLocation(customProvider.getName());
                         if (location!= null) {
-                            latitude = location.getLatitude();
-                            longitude = location.getLongitude();
+                            latitude = getLatitude();
+                            longitude = getLongitude();
+                            altitude = getAltitude();
                         }
                     }
                 }
@@ -165,6 +171,13 @@ public class GPSTracker extends Service implements LocationListener {
             longitude = location.getLongitude();
         }
         return longitude;
+    }
+
+    public double getAltitude() {
+        if (location != null) {
+            altitude = location.getAltitude();
+        }
+        return altitude;
     }
 
     /**

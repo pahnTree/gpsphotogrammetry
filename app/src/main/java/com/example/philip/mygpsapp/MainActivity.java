@@ -10,10 +10,15 @@ import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
-    Button btnShowLocation;
-    CheckBox externalGPSCheckBox;
-    TextView latitudeText;
-    TextView longitudeText;
+    private Button btnShowLocation;
+    private CheckBox externalGPSCheckBox;
+    private TextView latitudeText;
+    private TextView longitudeText;
+    private TextView altitudeText;
+    private TextView azimuthText;
+    private TextView pitchText;
+    private TextView rollText;
+
 
     GPSTracker gps;
 
@@ -24,6 +29,11 @@ public class MainActivity extends AppCompatActivity {
 
         latitudeText = (TextView) findViewById(R.id.latitudeText);
         longitudeText = (TextView) findViewById(R.id.longitudeText);
+        altitudeText = (TextView) findViewById(R.id.altitudeText);
+        azimuthText = (TextView) findViewById(R.id.azimuthText);
+        pitchText = (TextView) findViewById(R.id.pitchText);
+        rollText = (TextView) findViewById(R.id.rollText);
+
         externalGPSCheckBox = (CheckBox) findViewById(R.id.externalGPSCheckBox);
         if (externalGPSCheckBox.isChecked()) {
             externalGPSCheckBox.setChecked(false);
@@ -39,20 +49,22 @@ public class MainActivity extends AppCompatActivity {
                 // check if GPS enabled
                 if(gps.canGetLocation()){
 
+                    // If the GPS if working
                     double latitude = gps.getLatitude();
                     double longitude = gps.getLongitude();
+                    double altitude = gps.getAltitude();
+                    // Updates the text
+                    latitudeText.setText("" + latitude);
+                    longitudeText.setText("" + longitude);
+                    altitudeText.setText("" + altitude);
 
 
-                    latitudeText.setText("Lat: " + latitude);
-                    longitudeText.setText("Lon: " + longitude);
-
-
-                    Toast.makeText(getApplicationContext(), "Your Location is - \nLat: " + latitude + "\nLong: " + longitude, Toast.LENGTH_LONG).show();
-                }else if (gps.isExternalGPSEnabled){
+                    //Toast.makeText(getApplicationContext(), "Your Location is - \nLat: " + latitude + "\nLong: " + longitude, Toast.LENGTH_LONG).show();
+                } else {
                     // can't get location
                     // GPS or Network is not enabled
                     // Ask user to enable GPS/network in settings
-
+                    gps.showSettingsAlert();
                 }
 
             }
