@@ -83,7 +83,7 @@ public class GPSTracker extends Service implements LocationListener {
 
         try {
             locationManager = (LocationManager) mContext.getSystemService(LOCATION_SERVICE);
-            if (locationManager.getProvider(EXTERNAL_GPS_PROVIDER) == null) {
+            if (isExternalGPSEnabled && locationManager.getProvider(EXTERNAL_GPS_PROVIDER) == null) {
                 locationManager.addTestProvider(EXTERNAL_GPS_PROVIDER, false, false, false, false, true, true, true, Criteria.POWER_HIGH, Criteria.ACCURACY_FINE);
                 locationManager.setTestProviderEnabled(EXTERNAL_GPS_PROVIDER, true);
             }
@@ -99,24 +99,6 @@ public class GPSTracker extends Service implements LocationListener {
                 Log.d("Could not get GPS", "Could not get GPS");
             } else {
                 this.canGetLocation = true;
-
-                if (isExternalGPSEnabled) {
-
-
-                    if (location == null) {
-                        locationManager.requestLocationUpdates(customProvider.getName(), MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-                        Log.d("External GPS enabled", "External GPS enabled");
-                    }
-
-                    if (locationManager != null) {
-                        location = locationManager.getLastKnownLocation(customProvider.getName());
-                        if (location!= null) {
-                            latitude = getLatitude();
-                            longitude = getLongitude();
-                            altitude = getAltitude();
-                        }
-                    }
-                }
 
                 // Get location from network provider
                 if (isNetworkEnabled) {
@@ -144,6 +126,23 @@ public class GPSTracker extends Service implements LocationListener {
                                 latitude = location.getLatitude();
                                 longitude = location.getLongitude();
                             }
+                        }
+                    }
+                }
+
+                if (isExternalGPSEnabled) {
+
+                    if (location == null) {
+                        locationManager.requestLocationUpdates(customProvider.getName(), MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
+                        Log.d("External GPS enabled", "External GPS enabled");
+                    }
+
+                    if (locationManager != null) {
+                        location = locationManager.getLastKnownLocation(customProvider.getName());
+                        if (location!= null) {
+                            latitude = getLatitude();
+                            longitude = getLongitude();
+                            altitude = getAltitude();
                         }
                     }
                 }

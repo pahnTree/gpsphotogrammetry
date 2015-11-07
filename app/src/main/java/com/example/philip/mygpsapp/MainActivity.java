@@ -8,6 +8,8 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.logging.Handler;
+
 public class MainActivity extends AppCompatActivity {
 
     private Button btnShowLocation;
@@ -58,7 +60,6 @@ public class MainActivity extends AppCompatActivity {
                     longitudeText.setText("" + longitude);
                     altitudeText.setText("" + altitude);
 
-
                     //Toast.makeText(getApplicationContext(), "Your Location is - \nLat: " + latitude + "\nLong: " + longitude, Toast.LENGTH_LONG).show();
                 } else {
                     // can't get location
@@ -70,5 +71,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    class LocationThread extends Thread {
+        private final Handler mHandler;
     }
 }
