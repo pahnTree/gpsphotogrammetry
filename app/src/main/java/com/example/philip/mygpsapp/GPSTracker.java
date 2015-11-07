@@ -102,7 +102,6 @@ public class GPSTracker extends Service implements LocationListener {
 
                 if (isExternalGPSEnabled) {
 
-
                     if (location == null) {
                         locationManager.requestLocationUpdates(customProvider.getName(), MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
                         Log.d("External GPS enabled", "External GPS enabled");

@@ -11,6 +11,7 @@ import android.widget.Toast;
 public class MainActivity extends AppCompatActivity {
 
     private Button btnShowLocation;
+    private Button btnCancel;
     private CheckBox externalGPSCheckBox;
     private TextView latitudeText;
     private TextView longitudeText;
@@ -39,6 +40,10 @@ public class MainActivity extends AppCompatActivity {
             externalGPSCheckBox.setChecked(false);
             gps.isExternalGPSEnabled = true;
         }
+        if (!externalGPSCheckBox.isChecked()) {
+            externalGPSCheckBox.setChecked(true);
+            gps.isExternalGPSEnabled = false;
+        }
         btnShowLocation = (Button) findViewById(R.id.btnShowLocation);
         btnShowLocation.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -64,9 +69,20 @@ public class MainActivity extends AppCompatActivity {
                     // can't get location
                     // GPS or Network is not enabled
                     // Ask user to enable GPS/network in settings
-                    gps.showSettingsAlert();
+                    if (externalGPSCheckBox.isChecked() && gps.isExternalGPSEnabled == false) {
+                        gps.showSettingsAlert();
+                    }
+
                 }
 
+            }
+        });
+
+        btnCancel = (Button) findViewById(R.id.btnCancel);
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                gps.stopUsingGPS();
             }
         });
 

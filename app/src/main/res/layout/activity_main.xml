@@ -11,10 +11,9 @@
         android:layout_height="wrap_content"
         android:text="Show Location"
         android:id="@+id/btnShowLocation"
-        android:layout_marginEnd="39dp"
+        android:layout_marginEnd="40dp"
         android:layout_below="@+id/externalGPSCheckBox"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="36dp" />
+        android:layout_alignParentEnd="true" />
 
     <CheckBox
         android:layout_width="wrap_content"
@@ -22,7 +21,7 @@
         android:text="Use external GPS?"
         android:id="@+id/externalGPSCheckBox"
         android:checked="false"
-        android:layout_marginTop="37dp"
+        android:layout_marginTop="20dp"
         android:layout_alignParentTop="true"
         android:layout_toStartOf="@+id/btnShowLocation" />
 
@@ -31,10 +30,9 @@
         android:layout_height="wrap_content"
         android:text="GPS Coordinates"
         android:id="@+id/GPSCoord"
-        android:layout_marginTop="29dp"
-        android:layout_below="@+id/btnShowLocation"
-        android:layout_alignParentStart="true"
-        android:layout_marginStart="19dp" />
+        android:layout_marginBottom="51dp"
+        android:layout_above="@+id/textView"
+        android:layout_alignParentStart="true" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -50,7 +48,7 @@
         android:text="Latitude"
         android:id="@+id/latitudeText"
         android:layout_centerVertical="true"
-        android:layout_alignStart="@+id/GPSCoord" />
+        android:layout_alignEnd="@+id/textView6" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -144,4 +142,13 @@
         android:id="@+id/altitudeText"
         android:layout_below="@+id/textView6"
         android:layout_alignStart="@+id/longitudeText" />
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Cancel"
+        android:id="@+id/btnCancel"
+        android:layout_below="@+id/btnShowLocation"
+        android:layout_alignEnd="@+id/btnShowLocation" />
 </RelativeLayout>
