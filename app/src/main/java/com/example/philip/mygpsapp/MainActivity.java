@@ -8,6 +8,8 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.logging.Handler;
+
 public class MainActivity extends AppCompatActivity {
 
     private Button btnShowLocation;
@@ -20,8 +22,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView pitchText;
     private TextView rollText;
 
-
     GPSTracker gps;
+    SensorTracker sensor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,10 +42,7 @@ public class MainActivity extends AppCompatActivity {
             externalGPSCheckBox.setChecked(false);
             gps.isExternalGPSEnabled = true;
         }
-        if (!externalGPSCheckBox.isChecked()) {
-            externalGPSCheckBox.setChecked(true);
-            gps.isExternalGPSEnabled = false;
-        }
+
         btnShowLocation = (Button) findViewById(R.id.btnShowLocation);
         btnShowLocation.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -63,7 +62,6 @@ public class MainActivity extends AppCompatActivity {
                     longitudeText.setText("" + longitude);
                     altitudeText.setText("" + altitude);
 
-
                     //Toast.makeText(getApplicationContext(), "Your Location is - \nLat: " + latitude + "\nLong: " + longitude, Toast.LENGTH_LONG).show();
                 } else {
                     // can't get location
@@ -74,6 +72,19 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                 }
+
+                sensor = new SensorTracker(MainActivity.this);
+
+
+                float azimuth = sensor.getAzimuth();
+                float pitch = sensor.getPitch();
+                float roll = sensor.getRoll();
+
+                azimuthText.setText("" + azimuth + " degrees");
+                pitchText.setText("" + pitch);
+                rollText.setText("" + roll);
+
+
 
             }
         });
@@ -86,5 +97,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    class LocationThread extends Thread {
+        //private final Handler mHandler;
     }
 }
