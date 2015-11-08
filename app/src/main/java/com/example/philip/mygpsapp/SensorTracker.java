@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 
+import static android.hardware.Sensor.TYPE_ORIENTATION;
 
 /**
  * Created by Phil on 11/6/2015.
@@ -21,41 +22,39 @@ public class SensorTracker extends Activity implements SensorEventListener {
     private Sensor gyro;
     private Sensor accel;
     private Sensor compass;
+    private Sensor orientation;
 
     private boolean gyroscopeIsAvailable;
     private boolean accelerometerIsAvailable;
     private boolean magneticFieldIsAvailable;
 
-    private float azimuthAvg; // Angle from magnetic north
-    private float pitchAvg; // When in portrait, tilting phone towards face
-    private float rollAvg; // When in portrait, tilting phone side to side
+    private float azimuth; // Angle from magnetic north
+    private float pitch; // When in portrait, tilting phone towards face
+    private float roll; // When in portrait, tilting phone side to side
 
-    private float azimuthTotal;
-    private float pitchTotal;
-    private float rollTotal;
-
-    private float[] azimuthValue = new float[3];
-    private float[] pitchValue = new float[3];
-    private float[] rollValue = new float[3];
-
+    private boolean ready = false;
     private float[] accelValues = new float[3];
     private float[] compassValues = new float[3];
     private float[] inR = new float[9];
     private float[] inclineMatrix = new float[9];
+    private float[] orientationValues = new float[3];
     private float[] prefValues = new float[3];
+
+    private float mInclination;
     private int counter = 0;
-
-
+    private int mRotation;
 
     public SensorTracker(Context context) {
         this.mContext = context;
         mSensorManager = (SensorManager) mContext.getSystemService(SENSOR_SERVICE);
+
         getAngles();
     }
 
     public void getAngles() {
         try {
             getSensorManagers();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -99,26 +98,43 @@ public class SensorTracker extends Activity implements SensorEventListener {
     public void onSensorChanged(SensorEvent event) {
         // Need to get both accelerometer and compass
         // before determine orientationValues
+
+
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER ) {
             Log.d("Accelerometer", "Obtained values");
             for (int i = 0; i < 3; i++) {
                 accelValues[i] = event.values[i];
             }
+            ready = (compassValues[2] != 0) ? true : false;
         }
         if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
             Log.d("Magnetic Field", "Obtained values");
             for (int i = 0; i < 3; i++) {
                 compassValues[i] = event.values[i];
             }
+            ready = (accelValues[2] != 0) ? true : false;
         }
+        /* legacy code
+        if (event.sensor.getType() == Sensor.TYPE_ORIENTATION) {
+            for (int i = 0; i < 3; i++) {
+                orientationValues[i] = event.values[i];
+            }
+        }
+        */
+
+        /*
+        if (!ready) {
+            return;
+        }
+        */
         boolean success = mSensorManager.getRotationMatrix(inR, inclineMatrix, accelValues, compassValues);
         if (success) {
             // Got a good rotation matrix
             Log.d("Rotation matrix", "Success");
             mSensorManager.getOrientation(inR, prefValues); // Loads the matrix into prefValues
             doUpdate();
+            mInclination = mSensorManager.getInclination(inclineMatrix);
             // Display every 10th value
-
             if (counter++ % 10 == 0) {
                 doUpdate();
                 counter = 1;
@@ -134,21 +150,24 @@ public class SensorTracker extends Activity implements SensorEventListener {
     }
 
     public void doUpdate() {
-        azimuthAvg = (float) Math.toDegrees(prefValues[0] + 13);
-        pitchAvg = -1*(float) Math.toDegrees(prefValues[1]);
-        rollAvg = (float) Math.toDegrees(prefValues[2]);
+        azimuth = (float) prefValues[0];
+        if (azimuth < 0) {
+            azimuth += 360.0f;
+        }
+        pitch = (float) Math.toDegrees(prefValues[1]);
+        roll = (float) Math.toDegrees(prefValues[2]);
     }
 
     public float getAzimuth() {
-        return azimuthAvg;
+        return azimuth;
     }
 
     public float getPitch() {
-        return pitchAvg;
+        return pitch;
     }
 
     public float getRoll() {
-        return rollAvg;
+        return roll;
     }
 
     public boolean getGyroscopeIsAvailable() {
