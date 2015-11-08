@@ -64,9 +64,10 @@ public class MainActivity extends Activity {
                 LocationThread thread = new LocationThread(handler);
                 Log.d("Started thread", "Started thread");
                 runningText.setText("Running...");
+                sensor.startSensors();
                 run = true;
                 thread.start();
-                onPause();
+
             }
         });
 
@@ -76,6 +77,7 @@ public class MainActivity extends Activity {
             public void onClick(View v) {
                 Log.d("Thread stopped", "Thread stopped");
                 gps.stopUsingGPS();
+                sensor.stopSensors();
                 run = false;
                 runningText.setText("Stopped");
             }
@@ -86,7 +88,9 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        sensor.startSensors();
+        if (run) {
+            sensor.startSensors();
+        }
     }
 
     @Override
