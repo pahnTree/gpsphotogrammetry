@@ -7,8 +7,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.os.Handler;
@@ -26,7 +29,8 @@ public class MainActivity extends Activity {
     private TextView pitchText;
     private TextView rollText;
     private TextView runningText;
-    private LocationThread locationThread;
+    private AngleThread angleThread;
+    private GPSThread gpsThread;
     private boolean run;
 
 
@@ -59,12 +63,17 @@ public class MainActivity extends Activity {
                 // Each time the Show Location button is pressed
                 // a new thread is started. No way of restarting an old thread
                 // Helps with bugs associated with multiple clicks to Show Location
-                Handler handler = new Handler();
-                LocationThread thread = new LocationThread(handler);
-                Log.d("Started thread", "Started thread");
+                Handler locationHandler = new Handler();
+                //Handler gpsHandler = new Handler();
+                angleThread = new AngleThread(locationHandler);
+                //gpsThread = new GPSThread(gpsHandler);
+                Log.d("Started thread", "Angles");
+                Log.d("Started thread", "GPS location");
                 runningText.setText("Running...");
                 run = true;
-                thread.start();
+                sensor.startSensors();
+                angleThread.start();
+                //gpsThread.start();
 
             }
         });
@@ -86,7 +95,9 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        sensor.startSensors();
+        if (run) {
+            sensor.startSensors();
+        }
     }
 
     @Override
@@ -105,9 +116,11 @@ public class MainActivity extends Activity {
         runningText = (TextView) findViewById(R.id.runningText);
     }
 
-    class LocationThread extends Thread implements Runnable {
+
+
+    class AngleThread extends Thread implements Runnable {
         private final Handler mHandler;
-        LocationThread(Handler handler) {
+        AngleThread(Handler handler) {
             mHandler = handler;
         }
         @Override
@@ -122,19 +135,37 @@ public class MainActivity extends Activity {
                 mHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        getGPS();
-                        //Log.d("GPS location", "Updated");
                         getAngles();
                         //Log.d("Angles", "updated");
                     }
                 });
             }
         }
+    }
 
+    class GPSThread extends Thread implements Runnable {
+        private final Handler mHandler;
+        GPSThread(Handler handler) { mHandler = handler;}
+        @Override
+        public void run() {
+            while (run) {
+                try {
+                    Log.d("Thread sleep", "Pause for 100ms");
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        getGPS();
+                    }
+                });
+            }
+        }
     }
 
     public void getGPS() {
-
         // check if GPS enabled
         if(gps.canGetLocation()){
             Log.d("GPS", "Can get location");
@@ -159,17 +190,15 @@ public class MainActivity extends Activity {
     }
 
     public void getAngles() {
-
-
         if (sensor.getAccelerometerIsAvailable() && sensor.getMagneticFieldIsAvailable()) {
             Log.d("Angles", "Can get angles");
             float azimuth = sensor.getAzimuth();
             float pitch = sensor.getPitch();
             float roll = sensor.getRoll();
 
-            azimuthText.setText("" + azimuth + " degrees from north");
-            pitchText.setText("" + pitch);
-            rollText.setText("" + roll);
+            azimuthText.setText("" + Math.round(azimuth) + " degrees from north");
+            pitchText.setText("" + Math.round(pitch) + " degrees from horizontal");
+            rollText.setText("" + Math.round(roll) + " degrees side to side");
         } else {
             azimuthText.setText("Error");
             pitchText.setText("Error");
