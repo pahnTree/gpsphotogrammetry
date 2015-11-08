@@ -20,6 +20,9 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.text.DateFormat;
+import java.util.Date;
+
 /**
  * Created by Philip on 11/5/2015.
  */
@@ -27,24 +30,27 @@ public class GPSTracker extends Service implements LocationListener {
     private final Context mContext;
 
     // Flag for GPS status
-    boolean isGPSEnabled = false;
+    private boolean isGPSEnabled = false;
 
     // Flag for network status
-    boolean isNetworkEnabled = false;
+    private boolean isNetworkEnabled = false;
 
     // Flag for external gps status
-    boolean isExternalGPSEnabled = false;
+    private boolean isExternalGPSEnabled = false;
+    private boolean useExternalGPS = false;
     private final String EXTERNAL_GPS_PROVIDER = "external_gps";
+    private LocationProvider customProvider;
 
-    boolean canGetLocation = false;
+    private boolean canGetLocation = false;
 
-    Location location;
-    double latitude;
-    double longitude;
-    double altitude;
+    private Location location;
+    private double latitude;
+    private double longitude;
+    private double altitude;
+    private String lastUpdateTime;
 
     // Minimum distance change to update
-    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 5; // in Meters
+    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1; // in Meters
 
     // Minimum time between updates in milliseconds
     private static final long MIN_TIME_BW_UPDATES = 100; // 10Hz
@@ -54,13 +60,16 @@ public class GPSTracker extends Service implements LocationListener {
 
     public GPSTracker(Context context) {
         this.mContext = context;
+        setLocationManager();
         getLocation();
     }
 
 
     @Override
     public void onLocationChanged(Location location) {
-
+        this.location = location;
+        updateLocations();
+        lastUpdateTime = DateFormat.getTimeInstance().format(new Date());
     }
 
     @Override
@@ -78,29 +87,31 @@ public class GPSTracker extends Service implements LocationListener {
 
     }
 
+    private void setLocationManager() {
+        locationManager = (LocationManager) mContext.getSystemService(LOCATION_SERVICE);
+        if (isExternalGPSEnabled && locationManager.getProvider(EXTERNAL_GPS_PROVIDER) == null) {
+            locationManager.addTestProvider(EXTERNAL_GPS_PROVIDER, false, false, false, false, true, true, true, Criteria.POWER_HIGH, Criteria.ACCURACY_FINE);
+            locationManager.setTestProviderEnabled(EXTERNAL_GPS_PROVIDER, true);
+        }
+        // Getting GPS status
+        isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        isExternalGPSEnabled = locationManager.isProviderEnabled(EXTERNAL_GPS_PROVIDER);
+
+        customProvider = locationManager.getProvider(EXTERNAL_GPS_PROVIDER);
+    }
+
 
     public Location getLocation() {
 
         try {
-            locationManager = (LocationManager) mContext.getSystemService(LOCATION_SERVICE);
-            if (isExternalGPSEnabled && locationManager.getProvider(EXTERNAL_GPS_PROVIDER) == null) {
-                locationManager.addTestProvider(EXTERNAL_GPS_PROVIDER, false, false, false, false, true, true, true, Criteria.POWER_HIGH, Criteria.ACCURACY_FINE);
-                locationManager.setTestProviderEnabled(EXTERNAL_GPS_PROVIDER, true);
-            }
-            // Getting GPS status
-            isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-            isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-            isExternalGPSEnabled = locationManager.isProviderEnabled(EXTERNAL_GPS_PROVIDER);
-
-            LocationProvider customProvider = locationManager.getProvider(EXTERNAL_GPS_PROVIDER);
-
             if (!isGPSEnabled && !isNetworkEnabled) {
                 // No GPS or Network, do nothing
                 Log.d("Could not get GPS", "Could not get GPS");
             } else {
                 this.canGetLocation = true;
-
                 // Get location from network provider
+                /*
                 if (isNetworkEnabled) {
 
                     locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
@@ -115,24 +126,23 @@ public class GPSTracker extends Service implements LocationListener {
                         }
                     }
                 }
+                */
                 // If GPS is enabled, get using GPS services
                 if (isGPSEnabled) {
                     if (location == null) {
                         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
                                 MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
                         Log.d("GPS Enabled", "GPS Enabled");
-                        if (locationManager != null) {
-                            location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                            if (location != null) {
-                                latitude = location.getLatitude();
-                                longitude = location.getLongitude();
-                                altitude = location.getAltitude();
-                            }
+                    }
+                    if (locationManager != null) {
+                        location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                        if (location != null) {
+                            updateLocations();
                         }
                     }
                 }
 
-                if (isExternalGPSEnabled) {
+                if (isExternalGPSEnabled && useExternalGPS) {
 
                     if (location == null) {
                         locationManager.requestLocationUpdates(customProvider.getName(), MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
@@ -141,13 +151,10 @@ public class GPSTracker extends Service implements LocationListener {
                     if (locationManager != null) {
                         location = locationManager.getLastKnownLocation(customProvider.getName());
                         if (location!= null) {
-                            latitude = getLatitude();
-                            longitude = getLongitude();
-                            altitude = getAltitude();
+                            updateLocations();
                         }
                     }
                 }
-
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -156,25 +163,38 @@ public class GPSTracker extends Service implements LocationListener {
         return location;
     }
 
+    private void updateLocations() {
+        latitude = location.getLatitude();
+        longitude = location.getLongitude();
+        altitude = location.getAltitude();
+    }
+
     public double getLatitude() {
-        if (location != null) {
-            latitude = location.getLatitude();
-        }
         return latitude;
     }
 
     public double getLongitude() {
-        if (location != null) {
-            longitude = location.getLongitude();
-        }
         return longitude;
     }
 
     public double getAltitude() {
-        if (location != null) {
-            altitude = location.getAltitude();
-        }
         return altitude;
+    }
+
+    public void setUseExternalGPS(boolean value) {
+        useExternalGPS = value;
+    }
+
+    public void setIsExternalGPSEnabled(boolean value) {
+        isExternalGPSEnabled = value;
+    }
+
+    public boolean getIsExternalGPSEnabled() {
+        return isExternalGPSEnabled;
+    }
+
+    public String getLastUpdateTime() {
+        return lastUpdateTime;
     }
 
     /**
@@ -214,8 +234,6 @@ public class GPSTracker extends Service implements LocationListener {
 
         alertDialog.show();
     }
-
-
 
     public void stopUsingGPS() {
         if (locationManager != null) {

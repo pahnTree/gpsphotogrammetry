@@ -151,9 +151,8 @@ public class SensorTracker extends Activity implements SensorEventListener {
 
     public void doUpdate() {
         azimuth = (float) prefValues[0];
-        if (azimuth < 0) {
-            azimuth += 360.0f;
-        }
+
+        azimuth = (float) Math.toDegrees(azimuth);
         pitch = (float) Math.toDegrees(prefValues[1]);
         roll = (float) Math.toDegrees(prefValues[2]);
     }

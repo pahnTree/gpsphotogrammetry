@@ -26,6 +26,7 @@ public class MainActivity extends Activity {
     private TextView pitchText;
     private TextView rollText;
     private TextView runningText;
+    private TextView lastUpdateTimeText;
     private LocationThread locationThread;
     private boolean run;
 
@@ -44,7 +45,8 @@ public class MainActivity extends Activity {
         externalGPSCheckBox = (CheckBox) findViewById(R.id.externalGPSCheckBox);
         if (externalGPSCheckBox.isChecked()) {
             externalGPSCheckBox.setChecked(false);
-            gps.isExternalGPSEnabled = true;
+            gps.setIsExternalGPSEnabled(true);
+            gps.setUseExternalGPS(true);
         }
 
         btnShowLocation = (Button) findViewById(R.id.btnShowLocation);
@@ -107,6 +109,7 @@ public class MainActivity extends Activity {
         pitchText = (TextView) findViewById(R.id.pitchText);
         rollText = (TextView) findViewById(R.id.rollText);
         runningText = (TextView) findViewById(R.id.runningText);
+        lastUpdateTimeText = (TextView) findViewById(R.id.lastUpdateTimeText);
     }
 
     class LocationThread extends Thread implements Runnable {
@@ -134,11 +137,9 @@ public class MainActivity extends Activity {
                 });
             }
         }
-
     }
 
     public void getGPS() {
-
         // check if GPS enabled
         if(gps.canGetLocation()){
             Log.d("GPS", "Can get location");
@@ -147,33 +148,32 @@ public class MainActivity extends Activity {
             double longitude = gps.getLongitude();
             double altitude = gps.getAltitude();
             // Updates the text
-            latitudeText.setText("" + latitude);
-            longitudeText.setText("" + longitude);
-            altitudeText.setText("" + altitude);
+            latitudeText.setText(String.format("%.3f", latitude));
+            longitudeText.setText(String.format("%.3f", longitude));
+            altitudeText.setText("" + altitude + "m");
+            lastUpdateTimeText.setText(gps.getLastUpdateTime());
 
             //Toast.makeText(getApplicationContext(), "Your Location is - \nLat: " + latitude + "\nLong: " + longitude, Toast.LENGTH_LONG).show();
         } else {
             // can't get location
             // GPS or Network is not enabled
             // Ask user to enable GPS/network in settings
-            if (externalGPSCheckBox.isChecked() && gps.isExternalGPSEnabled == false) {
+            if (externalGPSCheckBox.isChecked() && gps.getIsExternalGPSEnabled()) {
                 gps.showSettingsAlert();
             }
         }
     }
 
     public void getAngles() {
-
-
         if (sensor.getAccelerometerIsAvailable() && sensor.getMagneticFieldIsAvailable()) {
             Log.d("Angles", "Can get angles");
             float azimuth = sensor.getAzimuth();
             float pitch = sensor.getPitch();
             float roll = sensor.getRoll();
 
-            azimuthText.setText("" + azimuth + " degrees");
-            pitchText.setText("" + pitch);
-            rollText.setText("" + roll);
+            azimuthText.setText("" + Math.round(azimuth) + "\u00b0 (from North)");
+            pitchText.setText("" + Math.round(pitch) + "\u00b0");
+            rollText.setText("" + Math.round(roll) + "\u00b0");
         } else {
             azimuthText.setText("Error");
             pitchText.setText("Error");
