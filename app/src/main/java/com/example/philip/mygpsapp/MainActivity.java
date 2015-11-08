@@ -44,11 +44,10 @@ public class MainActivity extends Activity {
         externalGPSCheckBox = (CheckBox) findViewById(R.id.externalGPSCheckBox);
         if (externalGPSCheckBox.isChecked()) {
             externalGPSCheckBox.setChecked(false);
-            gps.isExternalGPSEnabled = true;
+            gps.setExternalGPSEnabled(true);
         }
 
         btnShowLocation = (Button) findViewById(R.id.btnShowLocation);
-
 
         gps = new GPSTracker(MainActivity.this);
         sensor = new SensorTracker(MainActivity.this);
@@ -66,7 +65,7 @@ public class MainActivity extends Activity {
                 runningText.setText("Running...");
                 run = true;
                 thread.start();
-                onPause();
+
             }
         });
 
@@ -78,6 +77,7 @@ public class MainActivity extends Activity {
                 gps.stopUsingGPS();
                 run = false;
                 runningText.setText("Stopped");
+                onPause();
             }
         });
 
@@ -152,7 +152,7 @@ public class MainActivity extends Activity {
             // can't get location
             // GPS or Network is not enabled
             // Ask user to enable GPS/network in settings
-            if (externalGPSCheckBox.isChecked() && gps.isExternalGPSEnabled == false) {
+            if (externalGPSCheckBox.isChecked() && gps.getExternalGPSEnabled()) {
                 gps.showSettingsAlert();
             }
         }
@@ -167,7 +167,7 @@ public class MainActivity extends Activity {
             float pitch = sensor.getPitch();
             float roll = sensor.getRoll();
 
-            azimuthText.setText("" + azimuth + " degrees");
+            azimuthText.setText("" + azimuth + " degrees from north");
             pitchText.setText("" + pitch);
             rollText.setText("" + roll);
         } else {

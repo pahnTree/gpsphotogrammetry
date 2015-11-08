@@ -27,21 +27,21 @@ public class GPSTracker extends Service implements LocationListener {
     private final Context mContext;
 
     // Flag for GPS status
-    boolean isGPSEnabled = false;
+    private boolean isGPSEnabled = false;
 
     // Flag for network status
-    boolean isNetworkEnabled = false;
+    private boolean isNetworkEnabled = false;
 
     // Flag for external gps status
-    boolean isExternalGPSEnabled = false;
+    private boolean isExternalGPSEnabled = false;
     private final String EXTERNAL_GPS_PROVIDER = "external_gps";
 
-    boolean canGetLocation = false;
+    private boolean canGetLocation = false;
 
-    Location location;
-    double latitude;
-    double longitude;
-    double altitude;
+    private Location location;
+    private double latitude;
+    private double longitude;
+    private double altitude;
 
     // Minimum distance change to update
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 5; // in Meters
@@ -78,9 +78,7 @@ public class GPSTracker extends Service implements LocationListener {
 
     }
 
-
     public Location getLocation() {
-
         try {
             locationManager = (LocationManager) mContext.getSystemService(LOCATION_SERVICE);
             if (isExternalGPSEnabled && locationManager.getProvider(EXTERNAL_GPS_PROVIDER) == null) {
@@ -131,7 +129,6 @@ public class GPSTracker extends Service implements LocationListener {
                         }
                     }
                 }
-
                 if (isExternalGPSEnabled) {
 
                     if (location == null) {
@@ -183,6 +180,14 @@ public class GPSTracker extends Service implements LocationListener {
      */
     public boolean canGetLocation() {
         return this.canGetLocation;
+    }
+
+    public boolean getExternalGPSEnabled(){
+        return isExternalGPSEnabled;
+    }
+
+    public void setExternalGPSEnabled(boolean value) {
+        isExternalGPSEnabled = value;
     }
 
     /**
