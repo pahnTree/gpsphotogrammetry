@@ -100,25 +100,6 @@ public class GPSTracker extends Service implements LocationListener {
             } else {
                 this.canGetLocation = true;
 
-
-                if (isExternalGPSEnabled) {
-
-                    if (location == null) {
-                        locationManager.requestLocationUpdates(customProvider.getName(), MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-                        Log.d("External GPS enabled", "External GPS enabled");
-                    }
-
-                    if (locationManager != null) {
-                        location = locationManager.getLastKnownLocation(customProvider.getName());
-                        if (location!= null) {
-                            latitude = getLatitude();
-                            longitude = getLongitude();
-                            altitude = getAltitude();
-                        }
-                    }
-                }
-
-
                 // Get location from network provider
                 if (isNetworkEnabled) {
 
@@ -130,6 +111,7 @@ public class GPSTracker extends Service implements LocationListener {
                         if (location != null) {
                             latitude = location.getLatitude();
                             longitude = location.getLongitude();
+                            altitude = location.getAltitude();
                         }
                     }
                 }
@@ -144,6 +126,7 @@ public class GPSTracker extends Service implements LocationListener {
                             if (location != null) {
                                 latitude = location.getLatitude();
                                 longitude = location.getLongitude();
+                                altitude = location.getAltitude();
                             }
                         }
                     }
@@ -155,7 +138,6 @@ public class GPSTracker extends Service implements LocationListener {
                         locationManager.requestLocationUpdates(customProvider.getName(), MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
                         Log.d("External GPS enabled", "External GPS enabled");
                     }
-
                     if (locationManager != null) {
                         location = locationManager.getLastKnownLocation(customProvider.getName());
                         if (location!= null) {
@@ -165,9 +147,6 @@ public class GPSTracker extends Service implements LocationListener {
                         }
                     }
                 }
-
-
-
 
             }
         } catch (Exception e) {
@@ -235,6 +214,8 @@ public class GPSTracker extends Service implements LocationListener {
 
         alertDialog.show();
     }
+
+
 
     public void stopUsingGPS() {
         if (locationManager != null) {

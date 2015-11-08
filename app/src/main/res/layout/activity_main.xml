@@ -151,4 +151,12 @@
         android:id="@+id/btnCancel"
         android:layout_below="@+id/btnShowLocation"
         android:layout_alignEnd="@+id/btnShowLocation" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Not running"
+        android:id="@+id/runningText"
+        android:layout_alignBottom="@+id/btnCancel"
+        android:layout_alignStart="@+id/externalGPSCheckBox" />
 </RelativeLayout>
