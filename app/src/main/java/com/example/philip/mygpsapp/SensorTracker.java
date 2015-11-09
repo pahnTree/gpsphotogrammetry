@@ -47,14 +47,12 @@ public class SensorTracker extends Activity implements SensorEventListener {
     public SensorTracker(Context context) {
         this.mContext = context;
         mSensorManager = (SensorManager) mContext.getSystemService(SENSOR_SERVICE);
-
         getAngles();
     }
 
     public void getAngles() {
         try {
             getSensorManagers();
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -98,8 +96,6 @@ public class SensorTracker extends Activity implements SensorEventListener {
     public void onSensorChanged(SensorEvent event) {
         // Need to get both accelerometer and compass
         // before determine orientationValues
-
-
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER ) {
             Log.d("Accelerometer", "Obtained values");
             for (int i = 0; i < 3; i++) {
@@ -140,18 +136,14 @@ public class SensorTracker extends Activity implements SensorEventListener {
                 counter = 1;
             }
         }
-
-
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
     }
 
     public void doUpdate() {
         azimuth = (float) prefValues[0];
-
         azimuth = (float) Math.toDegrees(azimuth);
         pitch = (float) Math.toDegrees(prefValues[1]);
         roll = (float) Math.toDegrees(prefValues[2]);

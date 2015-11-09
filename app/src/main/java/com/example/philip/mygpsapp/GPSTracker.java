@@ -47,7 +47,12 @@ public class GPSTracker extends Service implements LocationListener {
     private double latitude;
     private double longitude;
     private double altitude;
+    private double speed;
     private String lastUpdateTime;
+
+    private final double GEOID_WEBSTER_FIELD = -34.923;
+    private final double GEOID_CRESSKILL_NJ = -31.589;
+    private final double GEOID_RUTGERS_ENG_D = -32.984;
 
     // Minimum distance change to update
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1; // in Meters
@@ -167,6 +172,7 @@ public class GPSTracker extends Service implements LocationListener {
         latitude = location.getLatitude();
         longitude = location.getLongitude();
         altitude = location.getAltitude();
+        speed = location.getSpeed();
     }
 
     public double getLatitude() {
@@ -179,6 +185,10 @@ public class GPSTracker extends Service implements LocationListener {
 
     public double getAltitude() {
         return altitude;
+    }
+
+    public double getSpeed() {
+        return speed;
     }
 
     public void setUseExternalGPS(boolean value) {
@@ -197,10 +207,17 @@ public class GPSTracker extends Service implements LocationListener {
         return lastUpdateTime;
     }
 
-    /**
-     * Check for best network provider
-     * @return
-     */
+    public double getGEOID(int c) {
+        switch (c) {
+            case 0:
+                return GEOID_CRESSKILL_NJ;
+            case 1:
+                return GEOID_RUTGERS_ENG_D;
+            default:
+                return GEOID_WEBSTER_FIELD;
+        }
+    }
+
     public boolean canGetLocation() {
         return this.canGetLocation;
     }

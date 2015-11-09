@@ -40,13 +40,13 @@
         android:text="Angles"
         android:id="@+id/PhoneAngles"
         android:layout_alignTop="@+id/GPSCoord"
-        android:layout_alignStart="@+id/btnShowLocation" />
+        android:layout_toStartOf="@+id/btnCancel" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Latitude"
-        android:id="@+id/latitudeText"
+        android:id="@+id/latitudeDegText"
         android:layout_centerVertical="true"
         android:layout_alignEnd="@+id/textView6" />
 
@@ -54,9 +54,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Longitude"
-        android:id="@+id/longitudeText"
+        android:id="@+id/longitudeDegText"
         android:layout_below="@+id/textView2"
-        android:layout_alignStart="@+id/latitudeText" />
+        android:layout_alignStart="@+id/latitudeDegText" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -64,14 +64,14 @@
         android:text="Azimuth"
         android:id="@+id/azimuthText"
         android:layout_below="@+id/textView3"
-        android:layout_alignEnd="@+id/textView3" />
+        android:layout_toEndOf="@+id/textView5" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Pitch"
         android:id="@+id/pitchText"
-        android:layout_alignTop="@+id/longitudeText"
+        android:layout_alignTop="@+id/textView2"
         android:layout_alignStart="@+id/azimuthText" />
 
     <TextView
@@ -88,7 +88,7 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Latitude"
         android:id="@+id/textView"
-        android:layout_above="@+id/latitudeText" />
+        android:layout_above="@+id/latitudeDegText" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -96,8 +96,9 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Longitude"
         android:id="@+id/textView2"
-        android:layout_below="@+id/latitudeText"
-        android:layout_alignStart="@+id/textView" />
+        android:layout_below="@+id/latitudeDegText"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="21dp" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -106,7 +107,7 @@
         android:text="Azimuth"
         android:id="@+id/textView3"
         android:layout_alignTop="@+id/textView"
-        android:layout_alignStart="@+id/btnShowLocation" />
+        android:layout_alignStart="@+id/PhoneAngles" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -114,7 +115,7 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Pitch"
         android:id="@+id/textView4"
-        android:layout_above="@+id/pitchText"
+        android:layout_below="@+id/azimuthText"
         android:layout_alignStart="@+id/textView3" />
 
     <TextView
@@ -132,8 +133,8 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Altitude"
         android:id="@+id/textView6"
-        android:layout_below="@+id/longitudeText"
-        android:layout_alignStart="@+id/textView2" />
+        android:layout_below="@+id/rollText"
+        android:layout_alignParentStart="true" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -141,7 +142,7 @@
         android:text="Altitude"
         android:id="@+id/altitudeText"
         android:layout_below="@+id/textView6"
-        android:layout_alignStart="@+id/longitudeText" />
+        android:layout_alignStart="@+id/longitudeDegText" />
 
     <Button
         style="?android:attr/buttonStyleSmall"
@@ -165,9 +166,9 @@
         android:layout_height="wrap_content"
         android:text="Last GPS Update:"
         android:id="@+id/textView7"
-        android:layout_below="@+id/altitudeText"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="47dp" />
+        android:layout_marginTop="46dp"
+        android:layout_below="@+id/textView8"
+        android:layout_alignParentStart="true" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -175,4 +176,37 @@
         android:id="@+id/lastUpdateTimeText"
         android:layout_alignTop="@+id/textView7"
         android:layout_toEndOf="@+id/textView7" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Speed"
+        android:id="@+id/textView8"
+        android:layout_below="@+id/altitudeText"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Speed"
+        android:id="@+id/speedText"
+        android:layout_below="@+id/textView8"
+        android:layout_alignStart="@+id/altitudeText" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Lat Deg Min Sec"
+        android:id="@+id/latitudeMinSecText"
+        android:layout_below="@+id/latitudeDegText"
+        android:layout_alignStart="@+id/latitudeDegText" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Lon Deg Min Sec"
+        android:id="@+id/longitudeMinSecText"
+        android:layout_below="@+id/longitudeDegText"
+        android:layout_alignStart="@+id/longitudeDegText" />
 </RelativeLayout>
