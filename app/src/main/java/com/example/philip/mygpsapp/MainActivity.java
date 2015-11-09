@@ -29,8 +29,6 @@ public class MainActivity extends Activity {
     private LocationThread locationThread;
     private boolean run;
 
-
-
     GPSTracker gps;
     SensorTracker sensor;
 
@@ -83,7 +81,6 @@ public class MainActivity extends Activity {
                 runningText.setText("Stopped");
             }
         });
-
     }
 
     @Override
@@ -149,18 +146,15 @@ public class MainActivity extends Activity {
             double latitude = gps.getLatitude();
             double longitude = gps.getLongitude();
             double altitude = gps.getAltitude();
+            String latMinSec = gps.getLatMinSec();
+            String lonMinSec = gps.getLonMinSec();
             altitude = altitude - gps.getGEOID(0); // GEOID 0 for Cresskill, 1 for Rutgers, other for Webster Field
             double speed = gps.getSpeed()*2.23694; // Convert from m/s to mph
-            // Updates the text
-            /*
-            latitudeText.setText(String.format("%.3f", latitude));
-            longitudeText.setText(String.format("%.3f", longitude));
-            */
-            // 5th decimal place is about 1.1m resolution
+            // 5th decimal place is about 0.8627m resolution at 38N Latitutde (Webster Field)
             latitudeDegText.setText(String.format("%.5f", latitude));
-            latitudeMinSecText.setText(convertDecimalToMinutes(latitude));
+            latitudeMinSecText.setText(latMinSec);
             longitudeDegText.setText(String.format("%.5f", longitude));
-            longitudeMinSecText.setText(convertDecimalToMinutes(longitude));
+            longitudeMinSecText.setText(lonMinSec);
             altitudeText.setText("" + altitude + "m");
             speedText.setText((int)speed + "mph");
             lastUpdateTimeText.setText(gps.getLastUpdateTime());
@@ -175,14 +169,6 @@ public class MainActivity extends Activity {
             }
         }
     }
-
-    public String convertDecimalToMinutes(double decimal) {
-        int degree = (int) decimal;
-        int minutes = (int)(60 * ( decimal - degree));
-        int seconds = (int)(3600 * ((decimal - degree) - minutes/60.0));
-        return degree + "\u00b0" + minutes + "\'" + seconds + "\"";
-    }
-
 
     public void getAngles() {
         if (sensor.getAccelerometerIsAvailable() && sensor.getMagneticFieldIsAvailable()) {

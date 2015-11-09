@@ -49,6 +49,10 @@ public class GPSTracker extends Service implements LocationListener {
     private double altitude;
     private double speed;
     private String lastUpdateTime;
+    private String latMinSec;
+    private String lonMinSec;
+
+    private double gpsResolution;
 
     private final double GEOID_WEBSTER_FIELD = -34.923;
     private final double GEOID_CRESSKILL_NJ = -31.589;
@@ -155,11 +159,12 @@ public class GPSTracker extends Service implements LocationListener {
                     }
                     if (locationManager != null) {
                         location = locationManager.getLastKnownLocation(customProvider.getName());
-                        if (location!= null) {
+                        if (location != null) {
                             updateLocations();
                         }
                     }
                 }
+                calculateGpsResolution((int)location.getLatitude());
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -173,22 +178,31 @@ public class GPSTracker extends Service implements LocationListener {
         longitude = location.getLongitude();
         altitude = location.getAltitude();
         speed = location.getSpeed();
+        latMinSec = location.convert(latitude, location.FORMAT_SECONDS);
+        lonMinSec = location.convert(longitude, location.FORMAT_SECONDS);
     }
 
-    public double getLatitude() {
-        return latitude;
-    }
+    public double getLatitude() { return latitude; }
 
-    public double getLongitude() {
-        return longitude;
-    }
+    public double getLongitude() { return longitude; }
 
-    public double getAltitude() {
-        return altitude;
-    }
+    public String getLatMinSec() { return latMinSec; }
+
+    public String getLonMinSec() { return lonMinSec; }
+
+    public double getAltitude() { return altitude; }
 
     public double getSpeed() {
         return speed;
+    }
+
+    public void calculateGpsResolution(int lat) {
+        // Linear interpolation from data at https://en.wikipedia.org/wiki/Decimal_degrees
+        // Resolution decimal degrees 5 places, 0.00001 (Individual trees)
+        // Can use this with known distances to get new GPS coordinates
+        // X lat change / Distance in m = 0.00001 / gpsResolution
+        gpsResolution = (lat - 23)*( (0.7871-1.0247)/(45-23) ) + 1.0247;
+        // At Webster Field gpsResolution = 0.8627m
     }
 
     public void setUseExternalGPS(boolean value) {
@@ -216,6 +230,10 @@ public class GPSTracker extends Service implements LocationListener {
             default:
                 return GEOID_WEBSTER_FIELD;
         }
+    }
+
+    public double getGpsResolution() {
+        return gpsResolution;
     }
 
     public boolean canGetLocation() {
