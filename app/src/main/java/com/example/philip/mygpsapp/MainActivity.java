@@ -32,6 +32,7 @@ public class MainActivity extends Activity {
 
     GPSTracker gps;
     SensorTracker sensor;
+    GeotagActivity geo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +45,9 @@ public class MainActivity extends Activity {
 
         gps = new GPSTracker(MainActivity.this);
         sensor = new SensorTracker(MainActivity.this);
+        geo = new GeotagActivity(MainActivity.this, gps, sensor);
+
+
 
         btnShowLocation.setOnClickListener(new View.OnClickListener() {
             @Override
