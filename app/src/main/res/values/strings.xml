@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MyGPSApp</string>
+    <string name="app_name">GPS photogrammetry</string>
     <string name="btnShowLocation">Show Location</string>
     <string name="cancel">Cancel</string>
     <string name="connectToDrone">Connect to Drone</string>

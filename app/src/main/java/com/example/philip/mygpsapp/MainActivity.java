@@ -120,17 +120,18 @@ public class MainActivity extends Activity {
                 mHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        getGPS();
+                        getOnBoardGPS();
                         //Log.d("GPS location", "Updated");
-                        getAngles();
+                        getOnBoardAngles();
                         //Log.d("Angles", "updated");
+                        //getPixhawkData();
                     }
                 });
             }
         }
     }
 
-    public void getGPS() {
+    public void getOnBoardGPS() {
         // check if GPS enabled
         if(gps.canGetLocation()){
             Log.d("GPS", "Can get location");
@@ -162,7 +163,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    public void getAngles() {
+    public void getOnBoardAngles() {
         if (sensor.getAccelerometerIsAvailable() && sensor.getMagneticFieldIsAvailable()) {
             Log.d("Angles", "Can get angles");
             float azimuth = sensor.getAzimuth();
