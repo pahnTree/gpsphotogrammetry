@@ -1,11 +1,14 @@
 package com.example.philip.mygpsapp;
 
 import android.app.Activity;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.TabHost;
+import android.widget.TabHost.TabSpec;
 import android.widget.TextView;
 import android.os.Handler;
 
@@ -14,7 +17,6 @@ public class MainActivity extends Activity {
 
     private Button btnShowLocation;
     private Button btnCancel;
-    private CheckBox externalGPSCheckBox;
     private TextView latitudeMinSecText;
     private TextView latitudeDegText;
     private TextView longitudeMinSecText;
@@ -26,7 +28,6 @@ public class MainActivity extends Activity {
     private TextView runningText;
     private TextView speedText;
     private TextView lastUpdateTimeText;
-    private LocationThread locationThread;
     private boolean run;
 
     GPSTracker gps;
@@ -39,15 +40,7 @@ public class MainActivity extends Activity {
 
         getTextViews();
 
-        externalGPSCheckBox = (CheckBox) findViewById(R.id.externalGPSCheckBox);
-        if (externalGPSCheckBox.isChecked()) {
-            externalGPSCheckBox.setChecked(false);
-            gps.setIsExternalGPSEnabled(true);
-            gps.setUseExternalGPS(true);
-        }
-
         btnShowLocation = (Button) findViewById(R.id.btnShowLocation);
-
 
         gps = new GPSTracker(MainActivity.this);
         sensor = new SensorTracker(MainActivity.this);
@@ -66,7 +59,6 @@ public class MainActivity extends Activity {
                 sensor.startSensors();
                 run = true;
                 thread.start();
-
             }
         });
 
@@ -164,7 +156,7 @@ public class MainActivity extends Activity {
             // can't get location
             // GPS or Network is not enabled
             // Ask user to enable GPS/network in settings
-            if (externalGPSCheckBox.isChecked() && gps.getIsExternalGPSEnabled()) {
+            if (gps.getIsExternalGPSEnabled()) {
                 gps.showSettingsAlert();
             }
         }
@@ -186,6 +178,4 @@ public class MainActivity extends Activity {
             rollText.setText("Error");
         }
     }
-
-
 }

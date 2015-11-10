@@ -192,9 +192,7 @@ public class GPSTracker extends Service implements LocationListener {
 
     public double getAltitude() { return altitude; }
 
-    public double getSpeed() {
-        return speed;
-    }
+    public double getSpeed() { return speed; }
 
     public void calculateGpsResolution(int lat) {
         // Linear interpolation from data at https://en.wikipedia.org/wiki/Decimal_degrees

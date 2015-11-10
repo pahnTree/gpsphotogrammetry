@@ -9,204 +9,341 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Show Location"
+        android:text="@string/btnShowLocation"
         android:id="@+id/btnShowLocation"
-        android:layout_marginEnd="40dp"
-        android:layout_below="@+id/externalGPSCheckBox"
+        android:layout_marginEnd="20dp"
         android:layout_alignParentEnd="true" />
-
-    <CheckBox
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Use external GPS?"
-        android:id="@+id/externalGPSCheckBox"
-        android:checked="false"
-        android:layout_marginTop="20dp"
-        android:layout_alignParentTop="true"
-        android:layout_toStartOf="@+id/btnShowLocation" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="GPS Coordinates"
-        android:id="@+id/GPSCoord"
-        android:layout_marginBottom="51dp"
-        android:layout_above="@+id/textView"
-        android:layout_alignParentStart="true" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Angles"
-        android:id="@+id/PhoneAngles"
-        android:layout_alignTop="@+id/GPSCoord"
-        android:layout_toStartOf="@+id/btnCancel" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Latitude"
-        android:id="@+id/latitudeDegText"
-        android:layout_centerVertical="true"
-        android:layout_alignEnd="@+id/textView6" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Longitude"
-        android:id="@+id/longitudeDegText"
-        android:layout_below="@+id/textView2"
-        android:layout_alignStart="@+id/latitudeDegText" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Azimuth"
-        android:id="@+id/azimuthText"
-        android:layout_below="@+id/textView3"
-        android:layout_toEndOf="@+id/textView5" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Pitch"
-        android:id="@+id/pitchText"
-        android:layout_alignTop="@+id/textView2"
-        android:layout_alignStart="@+id/azimuthText" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Roll"
-        android:id="@+id/rollText"
-        android:layout_below="@+id/textView5"
-        android:layout_alignStart="@+id/pitchText" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Latitude"
-        android:id="@+id/textView"
-        android:layout_above="@+id/latitudeDegText" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Longitude"
-        android:id="@+id/textView2"
-        android:layout_below="@+id/latitudeDegText"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="21dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Azimuth"
-        android:id="@+id/textView3"
-        android:layout_alignTop="@+id/textView"
-        android:layout_alignStart="@+id/PhoneAngles" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Pitch"
-        android:id="@+id/textView4"
-        android:layout_below="@+id/azimuthText"
-        android:layout_alignStart="@+id/textView3" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Roll"
-        android:id="@+id/textView5"
-        android:layout_below="@+id/pitchText"
-        android:layout_alignStart="@+id/textView4" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Altitude"
-        android:id="@+id/textView6"
-        android:layout_below="@+id/rollText"
-        android:layout_alignParentStart="true" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Altitude"
-        android:id="@+id/altitudeText"
-        android:layout_below="@+id/textView6"
-        android:layout_alignStart="@+id/longitudeDegText" />
 
     <Button
         style="?android:attr/buttonStyleSmall"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Cancel"
+        android:text="@string/cancel"
         android:id="@+id/btnCancel"
         android:layout_below="@+id/btnShowLocation"
         android:layout_alignEnd="@+id/btnShowLocation" />
 
-    <TextView
+    <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Not running"
-        android:id="@+id/runningText"
-        android:layout_alignBottom="@+id/btnCancel"
-        android:layout_alignStart="@+id/externalGPSCheckBox" />
+        android:text="@string/connectToDrone"
+        android:id="@+id/btnConnect"
+        android:layout_alignBottom="@+id/btnShowLocation"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="20dp" />
 
-    <TextView
+    <Spinner
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Last GPS Update:"
-        android:id="@+id/textView7"
-        android:layout_marginTop="46dp"
-        android:layout_below="@+id/textView8"
-        android:layout_alignParentStart="true" />
+        android:id="@+id/modeSelector"
+        android:spinnerMode="dropdown"
+        android:entries="@array/drone_connection_types"
+        android:layout_alignTop="@+id/btnCancel"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="12dp"
+        android:layout_alignEnd="@+id/btnConnect" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/lastUpdateTimeText"
-        android:layout_alignTop="@+id/textView7"
-        android:layout_toEndOf="@+id/textView7" />
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="40dp"
+        android:id="@+id/tableLayout"
+        android:layout_below="@+id/btnCancel"
+        android:layout_alignParentStart="true">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Speed"
-        android:id="@+id/textView8"
-        android:layout_below="@+id/altitudeText"
-        android:layout_alignParentStart="true" />
+        <TableRow
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/vehTelemRow1"
+            android:layout_marginBottom="10dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Speed"
-        android:id="@+id/speedText"
-        android:layout_below="@+id/textView8"
-        android:layout_alignStart="@+id/altitudeText" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/gpsNotrun"
+                android:id="@+id/runningText"
+                android:layout_column="0" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Lat Deg Min Sec"
-        android:id="@+id/latitudeMinSecText"
-        android:layout_below="@+id/latitudeDegText"
-        android:layout_alignStart="@+id/latitudeDegText" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/onboardgps"
+                android:id="@+id/GPSCoord"
+                android:layout_column="1"
+                android:layout_marginEnd="20dp" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Lon Deg Min Sec"
-        android:id="@+id/longitudeMinSecText"
-        android:layout_below="@+id/longitudeDegText"
-        android:layout_alignStart="@+id/longitudeDegText" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/pixhawkgps"
+                android:id="@+id/textView9"
+                android:layout_column="3" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/latitudeDegRow">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="@string/latitude"
+                android:id="@+id/textView"
+                android:layout_column="0" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/latitude"
+                android:id="@+id/latitudeDegText"
+                android:layout_column="1" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/latitude"
+                android:id="@+id/latitudeValueDegText"
+                android:layout_column="3" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/degminsec"
+                android:id="@+id/latitudeMinSecText"
+                android:layout_column="1" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="@string/longitude"
+                android:id="@+id/textView2"
+                android:layout_column="0"
+                android:layout_marginTop="5dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/longitude"
+                android:id="@+id/longitudeDegText"
+                android:layout_column="1" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/longitude"
+                android:id="@+id/longitudeValueDegText"
+                android:layout_column="3" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/degminsec"
+                android:id="@+id/longitudeMinSecText"
+                android:layout_column="1" />
+
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="@string/altitude"
+                android:id="@+id/textView6"
+                android:layout_column="0"
+                android:layout_marginTop="5dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/altitude"
+                android:id="@+id/altitudeText"
+                android:layout_column="1" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/altitude"
+                android:id="@+id/altitudeValueText"
+                android:layout_column="3" />
+
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="@string/speed"
+                android:id="@+id/textView8"
+                android:layout_column="0"
+                android:layout_marginTop="5dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/speed"
+                android:id="@+id/speedText"
+                android:layout_column="1" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/speed"
+                android:id="@+id/speedValueText"
+                android:layout_column="3" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="@string/distance"
+                android:id="@+id/textView10"
+                android:layout_column="0" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/fromhome"
+                android:id="@+id/textView11"
+                android:layout_column="1" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/distance"
+                android:id="@+id/distanceValueText"
+                android:layout_column="3" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/timesince"
+                android:id="@+id/textView7"
+                android:layout_column="0"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/lastUpdateTimeText"
+                android:text="@string/time"
+                android:layout_gravity="end"
+                android:layout_column="1" />
+
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Angles"
+                android:id="@+id/PhoneAngles"
+                android:layout_column="0"
+                android:layout_marginTop="10dp" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="Azimuth"
+                android:id="@+id/textView3"
+                android:layout_column="0" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Azimuth"
+                android:id="@+id/azimuthText"
+                android:layout_column="1" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="Pitch"
+                android:id="@+id/textView4"
+                android:layout_column="0" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pitch"
+                android:id="@+id/pitchText"
+                android:layout_column="1" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="Roll"
+                android:id="@+id/textView5"
+                android:layout_column="0" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Roll"
+                android:id="@+id/rollText"
+                android:layout_column="1" />
+        </TableRow>
+    </TableLayout>
+
 </RelativeLayout>
