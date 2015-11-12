@@ -1,8 +1,12 @@
-package com.example.philip.mygpsapp;
+package com.example.philip.mygpsapp.activities;
 
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+
+import com.example.philip.mygpsapp.services.Coordinates;
+import com.example.philip.mygpsapp.services.GPSTracker;
+import com.example.philip.mygpsapp.services.SensorTracker;
 
 
 /**

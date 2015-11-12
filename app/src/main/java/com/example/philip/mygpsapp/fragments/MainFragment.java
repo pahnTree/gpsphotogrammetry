@@ -1,10 +1,12 @@
-package com.example.philip.mygpsapp;
+package com.example.philip.mygpsapp.fragments;
 
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.example.philip.mygpsapp.R;
 
 /**
  * Created by Phil on 11/11/2015.

@@ -1,9 +1,14 @@
-package com.example.philip.mygpsapp;
+package com.example.philip.mygpsapp.activities;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTabHost;
-import android.support.v4.app.Fragment;
+
+import com.example.philip.mygpsapp.R;
+import com.example.philip.mygpsapp.fragments.CameraFragment;
+import com.example.philip.mygpsapp.fragments.DetailsFragment;
+import com.example.philip.mygpsapp.fragments.MainFragment;
+import com.example.philip.mygpsapp.fragments.SettingsFragment;
 
 /**
  * Starts the App
@@ -29,6 +34,8 @@ public class MainActivity extends FragmentActivity {
                 SettingsFragment.class, null);
         mTabHost.addTab(mTabHost.newTabSpec("tabDetails").setIndicator("Details", null),
                 DetailsFragment.class, null);
+        mTabHost.addTab(mTabHost.newTabSpec("tabCamera").setIndicator("Camera", null),
+                CameraFragment.class, null);
     }
 
     @Override

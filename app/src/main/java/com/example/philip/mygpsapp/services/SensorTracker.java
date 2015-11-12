@@ -1,4 +1,4 @@
-package com.example.philip.mygpsapp;
+package com.example.philip.mygpsapp.services;
 
 import android.app.Activity;
 import android.content.Context;

@@ -1,4 +1,4 @@
-package com.example.philip.mygpsapp;
+package com.example.philip.mygpsapp.services;
 
 /**
  * Created by Philip on 11/10/2015.

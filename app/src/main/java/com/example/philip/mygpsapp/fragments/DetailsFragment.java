@@ -1,4 +1,4 @@
-package com.example.philip.mygpsapp;
+package com.example.philip.mygpsapp.fragments;
 
 import android.support.v4.app.Fragment;
 import android.content.Context;
@@ -10,6 +10,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+
+import com.example.philip.mygpsapp.services.GPSTracker;
+import com.example.philip.mygpsapp.activities.GeotagActivity;
+import com.example.philip.mygpsapp.R;
+import com.example.philip.mygpsapp.services.SensorTracker;
 
 /**
  * Created by Phil on 11/11/2015.

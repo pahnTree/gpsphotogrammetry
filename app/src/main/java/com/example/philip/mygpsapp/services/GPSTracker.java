@@ -1,13 +1,10 @@
-package com.example.philip.mygpsapp;
+package com.example.philip.mygpsapp.services;
 
-import android.Manifest;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -18,7 +15,6 @@ import android.os.IBinder;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.text.DateFormat;
 import java.util.Date;
