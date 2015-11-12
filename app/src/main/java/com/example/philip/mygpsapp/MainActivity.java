@@ -1,6 +1,9 @@
 package com.example.philip.mygpsapp;
 
 import android.app.Activity;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,19 +18,11 @@ import android.os.Handler;
 
 public class MainActivity extends Activity {
 
-    private Button btnShowLocation;
+    private Button btnGatherData;
     private Button btnCancel;
-    private TextView latitudeMinSecText;
-    private TextView latitudeDegText;
-    private TextView longitudeMinSecText;
-    private TextView longitudeDegText;
-    private TextView altitudeText;
-    private TextView azimuthText;
-    private TextView pitchText;
-    private TextView rollText;
-    private TextView runningText;
-    private TextView speedText;
-    private TextView lastUpdateTimeText;
+    private Button btnDataDetails;
+    private Button btnSettings;
+
     private boolean run;
 
     GPSTracker gps;
@@ -39,9 +34,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        getTextViews();
-
-        btnShowLocation = (Button) findViewById(R.id.btnShowLocation);
+        btnGatherData = (Button) findViewById(R.id.btnGatherData);
 
         gps = new GPSTracker(MainActivity.this);
         sensor = new SensorTracker(MainActivity.this);
@@ -49,7 +42,7 @@ public class MainActivity extends Activity {
 
 
 
-        btnShowLocation.setOnClickListener(new View.OnClickListener() {
+        btnGatherData.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
                 // create class object
@@ -59,7 +52,7 @@ public class MainActivity extends Activity {
                 Handler handler = new Handler();
                 LocationThread thread = new LocationThread(handler);
                 Log.d("Started thread", "Started thread");
-                runningText.setText("Running...");
+
                 sensor.startSensors();
                 run = true;
                 thread.start();
@@ -74,9 +67,26 @@ public class MainActivity extends Activity {
                 gps.stopUsingGPS();
                 sensor.stopSensors();
                 run = false;
-                runningText.setText("Stopped");
+
             }
         });
+    }
+
+    public void selectFragment(View view) {
+        Fragment fr;
+        if (view == findViewById(R.id.btnGatherData)) {
+            fr = new DetailsFragment();
+        } else if (view == findViewById(R.id.btnSettings)) {
+            fr = new SettingsFragment();
+        } else {
+            fr = new MainFragment();
+        }
+
+        FragmentManager fm = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fm.beginTransaction();
+        fragmentTransaction.replace(R.id.fragment_place, fr);
+        fragmentTransaction.commit();
+
     }
 
     @Override
@@ -93,19 +103,7 @@ public class MainActivity extends Activity {
         sensor.stopSensors();
     }
 
-    public void getTextViews() {
-        latitudeDegText = (TextView) findViewById(R.id.latitudeDegText);
-        latitudeMinSecText = (TextView) findViewById(R.id.latitudeMinSecText);
-        longitudeDegText = (TextView) findViewById(R.id.longitudeDegText);
-        longitudeMinSecText = (TextView) findViewById(R.id.longitudeMinSecText);
-        altitudeText = (TextView) findViewById(R.id.altitudeText);
-        azimuthText = (TextView) findViewById(R.id.azimuthText);
-        pitchText = (TextView) findViewById(R.id.pitchText);
-        rollText = (TextView) findViewById(R.id.rollText);
-        runningText = (TextView) findViewById(R.id.runningText);
-        speedText = (TextView) findViewById(R.id.speedText);
-        lastUpdateTimeText = (TextView) findViewById(R.id.lastUpdateTimeText);
-    }
+
 
     class LocationThread extends Thread implements Runnable {
         private final Handler mHandler;
