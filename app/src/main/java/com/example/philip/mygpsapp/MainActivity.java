@@ -5,6 +5,11 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTabHost;
 import android.support.v4.app.Fragment;
 
+/**
+ * Starts the App
+ * Starts on the MainFragment page when app starts
+ * Can choose between the tabs to move around app and to start activities
+ */
 public class MainActivity extends FragmentActivity {
 
     private FragmentTabHost mTabHost;

@@ -13,6 +13,9 @@ import android.widget.TextView;
 
 /**
  * Created by Phil on 11/11/2015.
+ * This fragment is used to show details about the smartphone and the pixhawk
+ * Can choose to start the process and cancel
+ * Creates a gps object, a sensor object, and a geotag object
  */
 public class DetailsFragment extends Fragment {
 
@@ -56,9 +59,6 @@ public class DetailsFragment extends Fragment {
         getTextViews();
         getClick();
 
-        // Code to add
-        runningText.setText("Running...");
-        runningText.setText("Stopped");
         return v;
     }
 
@@ -94,7 +94,7 @@ public class DetailsFragment extends Fragment {
                 Handler handler = new Handler();
                 LocationThread thread = new LocationThread(handler);
                 Log.d("Started thread", "Started thread");
-
+                runningText.setText("Running...");
                 sensor.startSensors();
                 run = true;
                 thread.start();
@@ -109,11 +109,15 @@ public class DetailsFragment extends Fragment {
                 gps.stopUsingGPS();
                 sensor.stopSensors();
                 run = false;
-
+                runningText.setText("Stopped");
             }
         });
     }
 
+    /**
+     * Helper class used to run tasks in the background
+     * Will continuously gather gps data and smartphone orientation data until user clicks cancel
+     */
     class LocationThread extends Thread implements Runnable {
         private final Handler mHandler;
         LocationThread(Handler handler) {
@@ -173,7 +177,7 @@ public class DetailsFragment extends Fragment {
             latitudeMinSecText.setText(latMinSec);
             longitudeDegText.setText(String.format("%.5f", longitude));
             longitudeMinSecText.setText(lonMinSec);
-            altitudeText.setText("" + altitude + "m");
+            altitudeText.setText(String.format("%.1f", altitude) + "m");
             speedText.setText((int)speed + "mph");
             lastUpdateTimeText.setText(gps.getLastUpdateTime());
 
