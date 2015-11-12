@@ -4,7 +4,34 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_marginTop="40dp"
+    android:layout_marginLeft="5dp"
     android:id="@+id/tableLayout">
+
+    <Button
+        android:id="@+id/btnGatherData"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Start gathering data" />
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/connectToDrone"
+            android:id="@+id/btnConnect"
+            android:layout_column="0" />
+
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Stop Gathering data"
+            android:id="@+id/btnCancel"
+            android:layout_column="3" />
+    </TableRow>
 
     <TableRow
         android:layout_width="wrap_content"
