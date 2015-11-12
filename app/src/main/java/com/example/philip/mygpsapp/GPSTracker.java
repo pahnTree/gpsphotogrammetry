@@ -54,7 +54,7 @@ public class GPSTracker extends Service implements LocationListener {
 
     private double gpsResolution;
 
-    private final double GEOID_WEBSTER_FIELD = -34.923;
+    private final double GEOID_WEBSTER_FIELD = -34.923; // in meters
     private final double GEOID_CRESSKILL_NJ = -31.589;
     private final double GEOID_RUTGERS_ENG_D = -32.984;
 
@@ -72,7 +72,6 @@ public class GPSTracker extends Service implements LocationListener {
         setLocationManager();
         getLocation();
     }
-
 
     @Override
     public void onLocationChanged(Location location) {
