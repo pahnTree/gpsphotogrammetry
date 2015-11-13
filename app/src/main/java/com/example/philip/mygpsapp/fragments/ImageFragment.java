@@ -1,7 +1,8 @@
 package com.example.philip.mygpsapp.fragments;
 
-import android.support.v4.app.Fragment;
+import android.content.Context;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,9 +10,12 @@ import android.view.ViewGroup;
 import com.example.philip.mygpsapp.R;
 
 /**
- * Created by Phil on 11/11/2015.
+ * Created by Phil on 11/12/2015.
  */
-public class MainFragment extends Fragment{
+public class ImageFragment extends Fragment{
+
+    private Context mContext;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -21,6 +25,8 @@ public class MainFragment extends Fragment{
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container,
                              Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_main, container, false);
+        View v = inflater.inflate(R.layout.fragment_image, container, false);
+        mContext = v.getContext();
+        return v;
     }
 }

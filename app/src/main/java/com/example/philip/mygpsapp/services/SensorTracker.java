@@ -22,7 +22,6 @@ public class SensorTracker extends Activity implements SensorEventListener {
     private Sensor gyro;
     private Sensor accel;
     private Sensor compass;
-    private Sensor orientation;
 
     private boolean gyroscopeIsAvailable;
     private boolean accelerometerIsAvailable;
@@ -97,14 +96,14 @@ public class SensorTracker extends Activity implements SensorEventListener {
         // Need to get both accelerometer and compass
         // before determine orientationValues
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER ) {
-            Log.d("Accelerometer", "Obtained values");
+            //Log.d("Accelerometer", "Obtained values");
             for (int i = 0; i < 3; i++) {
                 accelValues[i] = event.values[i];
             }
             ready = (compassValues[2] != 0) ? true : false;
         }
         if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-            Log.d("Magnetic Field", "Obtained values");
+            //Log.d("Magnetic Field", "Obtained values");
             for (int i = 0; i < 3; i++) {
                 compassValues[i] = event.values[i];
             }

@@ -1,0 +1,22 @@
+Settings Tab:
+    GPS
+        - Internal GPS will gather data
+        - Pixhawk (Optional)
+    NOTE: Must have 3DR Services App installed for Pixhawk to work.
+
+Details Tab:
+    Start Gathering Data
+        - Pressing this button will begin a process to gather GPS location data.
+        - The smartphone's internal magnetic sensor, gyroscope, and accelerometer data will also be gathered.
+    Stop Gathering Data
+        - Ends the above processes.
+
+Camera Tab:
+    Timer:
+        - Take images at a set interval time for an unlimited number of photos.
+    Take Image:
+        - Start taking pictures.
+        - Similar to a Timelapse feature.
+        - Pressing the Take Image button a second time will end the process.
+
+Image Tab:

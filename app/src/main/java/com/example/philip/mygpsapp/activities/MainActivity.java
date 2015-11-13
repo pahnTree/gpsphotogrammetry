@@ -3,11 +3,16 @@ package com.example.philip.mygpsapp.activities;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTabHost;
+import android.widget.FrameLayout;
+import android.widget.HorizontalScrollView;
+import android.widget.LinearLayout;
+import android.widget.TabWidget;
 
 import com.example.philip.mygpsapp.R;
 import com.example.philip.mygpsapp.fragments.CameraFragment;
 import com.example.philip.mygpsapp.fragments.DetailsFragment;
-import com.example.philip.mygpsapp.fragments.MainFragment;
+import com.example.philip.mygpsapp.fragments.HelpFragment;
+import com.example.philip.mygpsapp.fragments.ImageFragment;
 import com.example.philip.mygpsapp.fragments.SettingsFragment;
 
 /**
@@ -28,14 +33,27 @@ public class MainActivity extends FragmentActivity {
 
         mTabHost.setup(this, getSupportFragmentManager(), android.R.id.tabcontent);
 
-        mTabHost.addTab(mTabHost.newTabSpec("tabMain").setIndicator("Main", null),
-                MainFragment.class, null);
+
         mTabHost.addTab(mTabHost.newTabSpec("tabSettings").setIndicator("Settings", null),
                 SettingsFragment.class, null);
         mTabHost.addTab(mTabHost.newTabSpec("tabDetails").setIndicator("Details", null),
                 DetailsFragment.class, null);
         mTabHost.addTab(mTabHost.newTabSpec("tabCamera").setIndicator("Camera", null),
                 CameraFragment.class, null);
+        mTabHost.addTab(mTabHost.newTabSpec("tabImage").setIndicator("Image", null),
+                ImageFragment.class, null);
+        mTabHost.addTab(mTabHost.newTabSpec("tabHelp").setIndicator("Help", null),
+                HelpFragment.class, null);
+
+        TabWidget tw = (TabWidget) findViewById(android.R.id.tabs);
+        LinearLayout ll = (LinearLayout) tw.getParent();
+        HorizontalScrollView hs = new HorizontalScrollView(this);
+        hs.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT));
+        ll.addView(hs, 0);
+        ll.removeView(tw);
+        hs.addView(tw);
+        hs.setHorizontalScrollBarEnabled(false);
     }
 
     @Override
