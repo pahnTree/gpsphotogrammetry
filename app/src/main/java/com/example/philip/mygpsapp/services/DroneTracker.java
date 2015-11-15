@@ -7,9 +7,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.philip.mygpsapp.R;
@@ -47,8 +45,7 @@ public class DroneTracker extends Activity implements TowerListener, DroneListen
 
     private double altitude;
     private double speed;
-
-    private Spinner modeSpinner;
+    private double distanceFromHome;
 
     public DroneTracker(Context context) {
         this.mContext = context;
@@ -77,12 +74,10 @@ public class DroneTracker extends Activity implements TowerListener, DroneListen
         switch (event) {
             case AttributeEvent.STATE_CONNECTED:
                 alertUser("Drone connected");
-                updateConnectButton(mDrone.isConnected());
                 break;
 
             case AttributeEvent.STATE_DISCONNECTED:
                 alertUser("Drone disconnected");
-                updateConnectButton(mDrone.isConnected());
                 break;
 
             case AttributeEvent.STATE_VEHICLE_MODE:
@@ -99,7 +94,6 @@ public class DroneTracker extends Activity implements TowerListener, DroneListen
 
             case AttributeEvent.STATE_UPDATED:
             case AttributeEvent.STATE_ARMING:
-                updateArmButton();
                 break;
 
             case AttributeEvent.SPEED_UPDATED:
@@ -120,12 +114,10 @@ public class DroneTracker extends Activity implements TowerListener, DroneListen
 
     public void onBtnConnectTap(View view) {
         if (mDrone.isConnected()) {
+            alertUser("Disconnected from drone");
             mDrone.disconnect();
         } else {
-            Bundle extraParams = new Bundle();
-            extraParams.putInt(ConnectionType.EXTRA_USB_BAUD_RATE, 57600);
-            ConnectionParameter mConnectionParameter = new ConnectionParameter(ConnectionType.TYPE_USB, extraParams, null);
-            mDrone.connect(mConnectionParameter);
+            connectDrone();
         }
     }
 
@@ -137,80 +129,48 @@ public class DroneTracker extends Activity implements TowerListener, DroneListen
         List<VehicleMode> vehicleModes = VehicleMode.getVehicleModePerDroneType(droneType);
         ArrayAdapter<VehicleMode> vehicleModeArrayAdapter = new ArrayAdapter<VehicleMode>(mContext, android.R.layout.simple_spinner_item, vehicleModes);
         vehicleModeArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        Spinner modeSpinner = (Spinner) findViewById(R.id.modeSpinner);
         modeSpinner.setAdapter(vehicleModeArrayAdapter);
     }
 
     protected void updateVehicleMode() {
         State vehicleState = mDrone.getAttribute(AttributeType.STATE);
         VehicleMode vehicleMode = vehicleState.getVehicleMode();
+        Spinner modeSpinner = (Spinner) findViewById(R.id.modeSpinner);
         ArrayAdapter arrayAdapter = (ArrayAdapter) modeSpinner.getAdapter();
         modeSpinner.setSelection(arrayAdapter.getPosition(vehicleMode));
-    }
-
-    public void connect() {
-        mControlTower.connect(this);
     }
 
     public void disconnectDrone() {
         if (mDrone.isConnected()) {
             mDrone.disconnect();
-
+            alertUser("Disconnected Drone");
         }
-        mControlTower.unregisterDrone(mDrone);
-        mControlTower.disconnect();
-    }
-
-    public void updateConnectButton(boolean isConnected) {
-        if (isConnected) {
-            //btnConnect.setText("Disconnect");
-        } else {
-            //btnConnect.setText("Connect to Drone");
+        if (mControlTower.isTowerConnected()) {
+            mControlTower.unregisterDrone(mDrone);
+            mControlTower.disconnect();
+            alertUser("Disconnected Tower");
         }
     }
 
-    public void getDroneData() {
+    public void connectDrone() {
+        Bundle extraParams = new Bundle();
+        extraParams.putInt(ConnectionType.EXTRA_USB_BAUD_RATE, 57600);
+        ConnectionParameter mConnectionParameter = new ConnectionParameter(ConnectionType.TYPE_USB, extraParams, null);
+        if (!mConnectionParameter.equals(mDrone.getConnectionParameter())) {
+            mDrone.disconnect();
+        }
+        mDrone.connect(mConnectionParameter);
         if (mDrone.isConnected()) {
-            Altitude droneAltitude = mDrone.getAttribute(AttributeType.ATTITUDE);
-            Speed droneSpeed = mDrone.getAttribute(AttributeType.SPEED);
-            altitude = droneAltitude.getAltitude();
-            speed = droneSpeed.getGroundSpeed();
-            updateDistanceFromHome();
-
-        }
-    }
-
-    protected void updateDistanceFromHome() {
-        TextView distanceTextView = (TextView)findViewById(R.id.distanceDroneText);
-        Altitude droneAltitude = mDrone.getAttribute(AttributeType.ALTITUDE);
-        double vehicleAltitude = droneAltitude.getAltitude();
-        Gps droneGps = mDrone.getAttribute(AttributeType.GPS);
-        LatLong vehiclePosition = droneGps.getPosition();
-
-        double distanceFromHome =  0;
-
-        if (droneGps.isValid()) {
-            LatLongAlt vehicle3DPosition = new LatLongAlt(vehiclePosition.getLatitude(), vehiclePosition.getLongitude(), vehicleAltitude);
-            Home droneHome = mDrone.getAttribute(AttributeType.HOME);
-            distanceFromHome = distanceBetweenPoints(droneHome.getCoordinate(), vehicle3DPosition);
+            alertUser("Connection successful");
         } else {
-            distanceFromHome = 0;
+            alertUser("Connection not established");
         }
-
-        distanceTextView.setText(String.format("%3.1f", distanceFromHome) + "m");
     }
 
-    protected double distanceBetweenPoints(LatLongAlt pointA, LatLongAlt pointB) {
-        if (pointA == null || pointB == null) {
-            return 0;
-        }
-        double dx = pointA.getLatitude() - pointB.getLatitude();
-        double dy  = pointA.getLongitude() - pointB.getLongitude();
-        double dz = pointA.getAltitude() - pointB.getAltitude();
-        return Math.sqrt(dx*dx + dy*dy + dz*dz);
-    }
+    public void connectTower() { mControlTower.connect(this);}
 
     public void onArmButtonTap(View view) {
-        Button thisBtn = (Button)view;
         State vehicleState = mDrone.getAttribute(AttributeType.STATE);
 
         if (vehicleState.isFlying()) {
@@ -228,28 +188,65 @@ public class DroneTracker extends Activity implements TowerListener, DroneListen
         }
     }
 
-    protected void updateArmButton() {
-        State vehicleState = mDrone.getAttribute(AttributeType.STATE);
-        Button armButton = (Button) findViewById(R.id.btnArmTakeOff);
+    public void getDroneData() {
+        if (mDrone.isConnected()) {
+            Altitude droneAltitude = mDrone.getAttribute(AttributeType.ATTITUDE);
+            Speed droneSpeed = mDrone.getAttribute(AttributeType.SPEED);
+            altitude = droneAltitude.getAltitude();
+            speed = droneSpeed.getGroundSpeed();
+            updateDistanceFromHome();
 
-        if (!mDrone.isConnected()) {
-            armButton.setVisibility(View.INVISIBLE);
         } else {
-            armButton.setVisibility(View.VISIBLE);
-        }
 
-        if (vehicleState.isFlying()) {
-            // Land
-            armButton.setText("LAND");
-        } else if (vehicleState.isArmed()) {
-            // Take off
-            armButton.setText("TAKE OFF");
-        } else if (vehicleState.isConnected()) {
-            // Not armed
-            armButton.setText("ARM");
         }
     }
+
+    public void updateDistanceFromHome() {
+        Altitude droneAltitude = mDrone.getAttribute(AttributeType.ALTITUDE);
+        double vehicleAltitude = droneAltitude.getAltitude();
+        Gps droneGps = mDrone.getAttribute(AttributeType.GPS);
+        LatLong vehiclePosition = droneGps.getPosition();
+
+        distanceFromHome =  0;
+
+        if (droneGps.isValid()) {
+            LatLongAlt vehicle3DPosition = new LatLongAlt(vehiclePosition.getLatitude(), vehiclePosition.getLongitude(), vehicleAltitude);
+            Home droneHome = mDrone.getAttribute(AttributeType.HOME);
+            distanceFromHome = distanceBetweenPoints(droneHome.getCoordinate(), vehicle3DPosition);
+        } else {
+            distanceFromHome = 0;
+        }
+
+    }
+
+    protected double distanceBetweenPoints(LatLongAlt pointA, LatLongAlt pointB) {
+        if (pointA == null || pointB == null) {
+            return 0;
+        }
+        double dx = pointA.getLatitude() - pointB.getLatitude();
+        double dy  = pointA.getLongitude() - pointB.getLongitude();
+        double dz = pointA.getAltitude() - pointB.getAltitude();
+        return Math.sqrt(dx*dx + dy*dy + dz*dz);
+    }
+
     public void alertUser(String message) {
         Toast.makeText(mContext, message, Toast.LENGTH_LONG).show();
     }
+
+    public double getAltitude() { return altitude; }
+
+    public double getSpeed() { return speed; }
+
+    public double getDistanceFromHome() { return distanceFromHome; }
+
+    public int getDroneType() { return droneType; }
+
+    public State getVehicleState() { return mDrone.getAttribute(AttributeType.STATE); }
+
+    public boolean isDroneConnected() { return mDrone.isConnected(); }
+
+    public boolean isTowerConnected() { return mControlTower.isTowerConnected(); }
+
+
+
 }

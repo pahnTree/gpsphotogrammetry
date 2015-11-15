@@ -1,5 +1,6 @@
 package com.example.philip.mygpsapp.fragments;
 
+import android.content.SharedPreferences;
 import android.support.v4.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
@@ -9,33 +10,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.philip.mygpsapp.services.DroneTracker;
 import com.example.philip.mygpsapp.services.GPSTracker;
 import com.example.philip.mygpsapp.activities.GeotagActivity;
 import com.example.philip.mygpsapp.R;
 import com.example.philip.mygpsapp.services.SensorTracker;
-import com.o3dr.android.client.ControlTower;
-import com.o3dr.android.client.Drone;
-import com.o3dr.android.client.interfaces.DroneListener;
-import com.o3dr.android.client.interfaces.TowerListener;
-import com.o3dr.services.android.lib.coordinate.LatLong;
-import com.o3dr.services.android.lib.coordinate.LatLongAlt;
-import com.o3dr.services.android.lib.drone.attribute.AttributeEvent;
-import com.o3dr.services.android.lib.drone.attribute.AttributeType;
-import com.o3dr.services.android.lib.drone.connection.ConnectionParameter;
-import com.o3dr.services.android.lib.drone.connection.ConnectionResult;
-import com.o3dr.services.android.lib.drone.connection.ConnectionType;
-import com.o3dr.services.android.lib.drone.property.Altitude;
-import com.o3dr.services.android.lib.drone.property.Gps;
-import com.o3dr.services.android.lib.drone.property.Home;
-import com.o3dr.services.android.lib.drone.property.Speed;
 import com.o3dr.services.android.lib.drone.property.State;
-import com.o3dr.services.android.lib.drone.property.Type;
 import com.o3dr.services.android.lib.drone.property.VehicleMode;
 
 import org.w3c.dom.Text;
@@ -48,7 +33,9 @@ import java.util.List;
  * Can choose to start the process and cancel
  * Creates a gps object, a sensor object, and a geotag object
  */
-public class DetailsFragment extends Fragment implements TowerListener, DroneListener {
+public class DetailsFragment extends Fragment {
+
+    public static final String PREFERENCES_FILE_NAME = "preferences";
 
     private TextView latitudeMinSecText;
     private TextView latitudeDegText;
@@ -62,6 +49,7 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
     private TextView speedText;
     private TextView lastUpdateTimeText;
 
+    private boolean usePixhawk;
     private TextView altitudeDroneText;
     private TextView speedDroneText;
     private TextView latitudeDroneDegText;
@@ -73,26 +61,25 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
     private Button btnGatherData;
     private Button btnCancel;
     private Button btnConnect;
+    private Button btnArm;
 
     private GPSTracker gps;
     private SensorTracker sensor;
     private GeotagActivity geo;
+    private DroneTracker pixhawk;
 
     private Context mContext;
     private boolean run;
 
     private Handler handler = new Handler();
-    private ControlTower mControlTower;
-    private Drone mDrone;
-    private int droneType = Type.TYPE_UNKNOWN;
     private Spinner modeSpinner;
+
+    private SharedPreferences settings;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = getContext();
-
-
     }
 
     @Override
@@ -102,9 +89,11 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
         // Inflate the layout for this fragment
         v = inflater.inflate(R.layout.fragment_details, container, false);
         mContext = getActivity();
-        mControlTower = new ControlTower(mContext);
-        mDrone = new Drone(mContext);
+        settings = mContext.getSharedPreferences(PREFERENCES_FILE_NAME, 0);
+        usePixhawk = settings.getBoolean("checkbox_pixhawk_connect", false);
 
+        getButtons();
+        getTrackerObjects();
         getTextViews();
         getClick();
 
@@ -130,16 +119,26 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
         distanceDroneText = (TextView) v.findViewById(R.id.distanceDroneText);
     }
 
-    // Click listeners
-    public void getClick() {
+    private void getButtons() {
         btnGatherData = (Button) v.findViewById(R.id.btnGatherData);
         btnConnect = (Button) v.findViewById(R.id.btnConnect);
+        btnArm = (Button) v.findViewById(R.id.btnArmTakeOff);
+        btnCancel = (Button) v.findViewById(R.id.btnCancel);
 
+
+    }
+
+    private void getTrackerObjects() {
         gps = new GPSTracker(mContext);
         sensor = new SensorTracker(mContext);
         geo = new GeotagActivity(mContext, gps, sensor);
+        pixhawk = new DroneTracker(mContext);
+        modeSpinner = (Spinner) v.findViewById(R.id.modeSpinner);
+    }
 
-        btnGatherData.setOnClickListener(new View.OnClickListener() {
+    // Click listeners
+    public void getClick() {
+       btnGatherData.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
                 // create class object
@@ -150,12 +149,15 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
                 Log.d("Started thread", "Started thread");
                 runningText.setText("Running...");
                 sensor.startSensors();
+                if (usePixhawk) {
+                    pixhawk.connectTower();
+                    pixhawk.connectDrone();
+                }
                 run = true;
                 thread.start();
             }
         });
 
-        btnCancel = (Button) v.findViewById(R.id.btnCancel);
         btnCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -163,12 +165,12 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
                 gps.stopUsingGPS();
                 sensor.stopSensors();
                 run = false;
-                disconnectDrone();
+                pixhawk.disconnectDrone();
                 runningText.setText("Stopped");
             }
         });
 
-        modeSpinner = (Spinner) v.findViewById(R.id.modeSpinner);
+
         modeSpinner.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -183,21 +185,24 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
         btnConnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                onBtnConnectTap(view);
+                usePixhawk = settings.getBoolean("checkbox_pixhawk_connect", false);
+                if (usePixhawk) {
+                    pixhawk.onBtnConnectTap(view);
+                    updateConnectButton(pixhawk.isDroneConnected());
+                } else {
+                    alertUser("Update settings");
+                }
             }
         });
 
-    }
+        btnArm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                pixhawk.onArmButtonTap(view);
+                updateArmButton();
+            }
+        });
 
-    public void onBtnConnectTap(View view) {
-        if (mDrone.isConnected()) {
-            mDrone.disconnect();
-        } else {
-            Bundle extraParams = new Bundle();
-            extraParams.putInt(ConnectionType.EXTRA_USB_BAUD_RATE, 57600);
-            ConnectionParameter mConnectionParameter = new ConnectionParameter(ConnectionType.TYPE_USB, extraParams, null);
-            mDrone.connect(mConnectionParameter);
-        }
     }
 
     public void updateConnectButton(boolean isConnected) {
@@ -208,85 +213,9 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
         }
     }
 
-    @Override
-    public void onTowerConnected() {
-        mControlTower.registerDrone(mDrone, handler);
-        mDrone.registerDroneListener(this);
-    }
-
-    @Override
-    public void onTowerDisconnected() {
-
-    }
-
-    @Override
-    public void onDroneConnectionFailed(ConnectionResult result) {
-
-    }
-
-    @Override
-    public void onDroneEvent(String event, Bundle extras) {
-        switch (event) {
-            case AttributeEvent.STATE_CONNECTED:
-                alertUser("Drone connected");
-                updateConnectButton(mDrone.isConnected());
-                break;
-
-            case AttributeEvent.STATE_DISCONNECTED:
-                alertUser("Drone disconnected");
-                updateConnectButton(mDrone.isConnected());
-                break;
-
-            case AttributeEvent.STATE_VEHICLE_MODE:
-                updateVehicleMode();
-                break;
-
-            case AttributeEvent.TYPE_UPDATED:
-                Type newDroneType = mDrone.getAttribute(AttributeType.TYPE);
-                if (newDroneType.getDroneType() != droneType) {
-                    droneType = newDroneType.getDroneType();
-                    updateVehicleModeForType(droneType);
-                }
-                break;
-
-            case AttributeEvent.STATE_UPDATED:
-            case AttributeEvent.STATE_ARMING:
-                updateArmButton();
-                break;
-
-            case AttributeEvent.SPEED_UPDATED:
-            case AttributeEvent.ALTITUDE_UPDATED:
-            case AttributeEvent.HOME_UPDATED:
-                getDroneData();
-                break;
-
-            default:
-                break;
-        }
-    }
-
-    @Override
-    public void onDroneServiceInterrupted(String errorMsg) {
-
-    }
-
     public void onFlightModeSelected(View view) {
         VehicleMode vehicleMode = (VehicleMode)modeSpinner.getSelectedItem();
-        mDrone.changeVehicleMode(vehicleMode);
-    }
-
-    protected void updateVehicleModeForType(int droneType) {
-        List<VehicleMode> vehicleModes = VehicleMode.getVehicleModePerDroneType(droneType);
-        ArrayAdapter<VehicleMode> vehicleModeArrayAdapter = new ArrayAdapter<VehicleMode>(mContext, android.R.layout.simple_spinner_item, vehicleModes);
-        vehicleModeArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        modeSpinner.setAdapter(vehicleModeArrayAdapter);
-    }
-
-    protected void updateVehicleMode() {
-        State vehicleState = mDrone.getAttribute(AttributeType.STATE);
-        VehicleMode vehicleMode = vehicleState.getVehicleMode();
-        ArrayAdapter arrayAdapter = (ArrayAdapter) modeSpinner.getAdapter();
-        modeSpinner.setSelection(arrayAdapter.getPosition(vehicleMode));
+        pixhawk.onFlightModeSelected(vehicleMode);
     }
 
     /**
@@ -314,7 +243,8 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
                         //Log.d("GPS location", "Updated");
                         getOnBoardAngles();
                         //Log.d("Angles", "updated");
-                        //getPixhawkData();
+                        if (usePixhawk)
+                            getPixhawkData();
                     }
                 });
             }
@@ -325,27 +255,20 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
     public void onResume() {
         super.onResume();
         if (run) {
-            mControlTower.connect(this);
             sensor.startSensors();
+            if (usePixhawk) {
+                pixhawk.connectDrone();
+                pixhawk.connectTower();
+            }
         }
+
     }
 
     @Override
     public void onPause() {
         super.onPause();
         sensor.stopSensors();
-        disconnectDrone();
-    }
-
-    public void disconnectDrone() {
-        if (mDrone.isConnected()) {
-            mDrone.disconnect();
-
-        }
-        if (mControlTower.isTowerConnected()) {
-            mControlTower.unregisterDrone(mDrone);
-            mControlTower.disconnect();
-        }
+        pixhawk.disconnectDrone(); // Disconnects tower and drone
     }
 
     public void getOnBoardGPS() {
@@ -380,46 +303,17 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
         }
     }
 
-    public void getDroneData() {
-        if (mDrone.isConnected()) {
-            Altitude droneAltitude = mDrone.getAttribute(AttributeType.ATTITUDE);
-            Speed droneSpeed = mDrone.getAttribute(AttributeType.SPEED);
-            altitudeDroneText.setText(String.format(".%3.1f", droneAltitude.getAltitude()) + "m");
-            speedDroneText.setText(String.format("3.1f", droneSpeed.getGroundSpeed()) + "m/s");
-            updateDistanceFromHome();
-
+    public void getPixhawkData() {
+        if (pixhawk.isDroneConnected() && usePixhawk) {
+            double altitude = pixhawk.getAltitude();
+            double groundSpeed = pixhawk.getSpeed();
+            pixhawk.updateDistanceFromHome();
+            double distance = pixhawk.getDistanceFromHome();
+            altitudeDroneText.setText(String.format(".%3.1f", altitude) + "m");
+            speedDroneText.setText(String.format("3.1f", groundSpeed) + "m/s");
+            distanceDroneText.setText(String.format("3.1f", distance) + "m");
 
         }
-    }
-
-    protected void updateDistanceFromHome() {
-        TextView distanceTextView = (TextView)v.findViewById(R.id.distanceDroneText);
-        Altitude droneAltitude = mDrone.getAttribute(AttributeType.ALTITUDE);
-        double vehicleAltitude = droneAltitude.getAltitude();
-        Gps droneGps = mDrone.getAttribute(AttributeType.GPS);
-        LatLong vehiclePosition = droneGps.getPosition();
-
-        double distanceFromHome =  0;
-
-        if (droneGps.isValid()) {
-            LatLongAlt vehicle3DPosition = new LatLongAlt(vehiclePosition.getLatitude(), vehiclePosition.getLongitude(), vehicleAltitude);
-            Home droneHome = mDrone.getAttribute(AttributeType.HOME);
-            distanceFromHome = distanceBetweenPoints(droneHome.getCoordinate(), vehicle3DPosition);
-        } else {
-            distanceFromHome = 0;
-        }
-
-        distanceTextView.setText(String.format("%3.1f", distanceFromHome) + "m");
-    }
-
-    protected double distanceBetweenPoints(LatLongAlt pointA, LatLongAlt pointB) {
-        if (pointA == null || pointB == null) {
-            return 0;
-        }
-        double dx = pointA.getLatitude() - pointB.getLatitude();
-        double dy  = pointA.getLongitude() - pointB.getLongitude();
-        double dz = pointA.getAltitude() - pointB.getAltitude();
-        return Math.sqrt(dx*dx + dy*dy + dz*dz);
     }
 
     public void getOnBoardAngles() {
@@ -443,30 +337,11 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
         Toast.makeText(mContext, message, Toast.LENGTH_LONG).show();
     }
 
-    public void onArmButtonTap(View view) {
-        Button thisBtn = (Button)view;
-        State vehicleState = mDrone.getAttribute(AttributeType.STATE);
-
-        if (vehicleState.isFlying()) {
-            // Land
-            mDrone.changeVehicleMode(VehicleMode.COPTER_LAND);
-        } else if (vehicleState.isArmed()) {
-            // Take off
-            mDrone.doGuidedTakeoff(10); // Default take off altitude is 10m
-        } else if (!vehicleState.isConnected()) {
-            // Connect
-            alertUser("Connect to a drone first");
-        } else if (vehicleState.isConnected() && !vehicleState.isArmed()){
-            // Connected but not Armed
-            mDrone.arm(true);
-        }
-    }
-
     protected void updateArmButton() {
-        State vehicleState = mDrone.getAttribute(AttributeType.STATE);
+        State vehicleState = pixhawk.getVehicleState();
         Button armButton = (Button) v.findViewById(R.id.btnArmTakeOff);
 
-        if (!mDrone.isConnected()) {
+        if (!pixhawk.isDroneConnected()) {
             armButton.setVisibility(View.INVISIBLE);
         } else {
             armButton.setVisibility(View.VISIBLE);

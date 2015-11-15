@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:title="GPS setup">
+
+            <CheckBoxPreference
+                android:key="checkbox_pixhawk_connect"
+                android:title="Use Pixhawk"
+                android:summary="If a Pixhawk is connected to android via USB OTG cable"
+                android:defaultValue="false"/>
+
+    </PreferenceCategory>
+
+</PreferenceScreen>
