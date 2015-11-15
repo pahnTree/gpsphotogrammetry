@@ -125,7 +125,6 @@ public class DetailsFragment extends Fragment {
         btnArm = (Button) v.findViewById(R.id.btnArmTakeOff);
         btnCancel = (Button) v.findViewById(R.id.btnCancel);
 
-
     }
 
     private void getTrackerObjects() {
@@ -149,10 +148,6 @@ public class DetailsFragment extends Fragment {
                 Log.d("Started thread", "Started thread");
                 runningText.setText("Running...");
                 sensor.startSensors();
-                if (usePixhawk) {
-                    pixhawk.connectTower();
-                    pixhawk.connectDrone();
-                }
                 run = true;
                 thread.start();
             }
@@ -170,7 +165,7 @@ public class DetailsFragment extends Fragment {
             }
         });
 
-
+/*
         modeSpinner.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -181,7 +176,7 @@ public class DetailsFragment extends Fragment {
                 // Do nothing
             }
         });
-
+*/
         btnConnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -243,7 +238,7 @@ public class DetailsFragment extends Fragment {
                         //Log.d("GPS location", "Updated");
                         getOnBoardAngles();
                         //Log.d("Angles", "updated");
-                        if (usePixhawk)
+                        if (usePixhawk && pixhawk.isDroneConnected())
                             getPixhawkData();
                     }
                 });

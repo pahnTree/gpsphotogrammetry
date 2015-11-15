@@ -51,6 +51,7 @@ public class DroneTracker extends Activity implements TowerListener, DroneListen
         this.mContext = context;
         mControlTower = new ControlTower(mContext);
         mDrone = new Drone(mContext);
+        connectTower();
     }
 
     @Override
@@ -157,10 +158,8 @@ public class DroneTracker extends Activity implements TowerListener, DroneListen
         Bundle extraParams = new Bundle();
         extraParams.putInt(ConnectionType.EXTRA_USB_BAUD_RATE, 57600);
         ConnectionParameter mConnectionParameter = new ConnectionParameter(ConnectionType.TYPE_USB, extraParams, null);
-        if (!mConnectionParameter.equals(mDrone.getConnectionParameter())) {
-            mDrone.disconnect();
-        }
         mDrone.connect(mConnectionParameter);
+        mControlTower.registerDrone(mDrone,handler);
         if (mDrone.isConnected()) {
             alertUser("Connection successful");
         } else {
