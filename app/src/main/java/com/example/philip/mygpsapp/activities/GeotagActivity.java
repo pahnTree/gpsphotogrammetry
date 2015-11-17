@@ -16,7 +16,6 @@ public class GeotagActivity extends Activity {
     private Context mContext;
     private GPSTracker mGPS;
     private SensorTracker mSensor;
-    //private DroneTracker mDrone;
     // Camera is locked in portrait mode
     private double gpsLatitude; // Decimal with 5 trailing 0.00001
     private double gpsLongitude;

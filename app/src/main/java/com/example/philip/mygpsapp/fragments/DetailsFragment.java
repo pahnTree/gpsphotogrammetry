@@ -10,17 +10,33 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.philip.mygpsapp.services.DroneTracker;
 import com.example.philip.mygpsapp.services.GPSTracker;
 import com.example.philip.mygpsapp.activities.GeotagActivity;
 import com.example.philip.mygpsapp.R;
 import com.example.philip.mygpsapp.services.SensorTracker;
+import com.o3dr.android.client.ControlTower;
+import com.o3dr.android.client.Drone;
+import com.o3dr.android.client.interfaces.DroneListener;
+import com.o3dr.android.client.interfaces.TowerListener;
+import com.o3dr.services.android.lib.coordinate.LatLong;
+import com.o3dr.services.android.lib.coordinate.LatLongAlt;
+import com.o3dr.services.android.lib.drone.attribute.AttributeEvent;
+import com.o3dr.services.android.lib.drone.attribute.AttributeType;
+import com.o3dr.services.android.lib.drone.connection.ConnectionParameter;
+import com.o3dr.services.android.lib.drone.connection.ConnectionResult;
+import com.o3dr.services.android.lib.drone.connection.ConnectionType;
+import com.o3dr.services.android.lib.drone.property.Altitude;
+import com.o3dr.services.android.lib.drone.property.Gps;
+import com.o3dr.services.android.lib.drone.property.Home;
+import com.o3dr.services.android.lib.drone.property.Speed;
 import com.o3dr.services.android.lib.drone.property.State;
+import com.o3dr.services.android.lib.drone.property.Type;
 import com.o3dr.services.android.lib.drone.property.VehicleMode;
 
 import org.w3c.dom.Text;
@@ -33,9 +49,7 @@ import java.util.List;
  * Can choose to start the process and cancel
  * Creates a gps object, a sensor object, and a geotag object
  */
-public class DetailsFragment extends Fragment {
-
-    public static final String PREFERENCES_FILE_NAME = "preferences";
+public class DetailsFragment extends Fragment implements TowerListener, DroneListener {
 
     private TextView latitudeMinSecText;
     private TextView latitudeDegText;
@@ -49,7 +63,6 @@ public class DetailsFragment extends Fragment {
     private TextView speedText;
     private TextView lastUpdateTimeText;
 
-    private boolean usePixhawk;
     private TextView altitudeDroneText;
     private TextView speedDroneText;
     private TextView latitudeDroneDegText;
@@ -66,20 +79,25 @@ public class DetailsFragment extends Fragment {
     private GPSTracker gps;
     private SensorTracker sensor;
     private GeotagActivity geo;
-    private DroneTracker pixhawk;
 
     private Context mContext;
     private boolean run;
 
-    private Handler handler = new Handler();
+    private Handler sensorHandler = new Handler();
+    private final Handler droneHandler = new Handler();
+    private ControlTower mControlTower;
+    private Drone mDrone;
+    private int droneType = Type.TYPE_UNKNOWN;
     private Spinner modeSpinner;
 
+    private final String PREFERENCE_FILE_NAME = "preferences";
     private SharedPreferences settings;
+    private boolean usePixhawk;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mContext = getContext();
+
     }
 
     @Override
@@ -88,19 +106,23 @@ public class DetailsFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         v = inflater.inflate(R.layout.fragment_details, container, false);
-        mContext = getActivity();
-        settings = mContext.getSharedPreferences(PREFERENCES_FILE_NAME, 0);
+        mContext = container.getContext();
+        this.mControlTower = new ControlTower(mContext);
+        this.mDrone = new Drone(mContext);
+        this.mControlTower.connect(this);
+
+        settings = mContext.getSharedPreferences(PREFERENCE_FILE_NAME, 0);
         usePixhawk = settings.getBoolean("checkbox_pixhawk_connect", false);
 
-        getButtons();
-        getTrackerObjects();
         getTextViews();
+        getButtons();
+        getTrackers();
         getClick();
 
         return v;
     }
 
-    public void getTextViews() {
+    private void getTextViews() {
         latitudeDegText = (TextView) v.findViewById(R.id.latitudeDegText);
         latitudeMinSecText = (TextView) v.findViewById(R.id.latitudeMinSecText);
         longitudeDegText = (TextView) v.findViewById(R.id.longitudeDegText);
@@ -117,34 +139,34 @@ public class DetailsFragment extends Fragment {
         latitudeDroneDegText = (TextView) v.findViewById(R.id.latitudeDroneDegText);
         longitudeDroneDegText = (TextView) v.findViewById(R.id.longitudeDroneDegText);
         distanceDroneText = (TextView) v.findViewById(R.id.distanceDroneText);
+        speedDroneText = (TextView) v.findViewById(R.id.speedDroneText);
+
     }
 
     private void getButtons() {
         btnGatherData = (Button) v.findViewById(R.id.btnGatherData);
         btnConnect = (Button) v.findViewById(R.id.btnConnect);
-        btnArm = (Button) v.findViewById(R.id.btnArmTakeOff);
         btnCancel = (Button) v.findViewById(R.id.btnCancel);
-
+        btnArm = (Button) v.findViewById(R.id.btnArmTakeOff);
+        modeSpinner = (Spinner) v.findViewById(R.id.modeSpinner);
     }
 
-    private void getTrackerObjects() {
+    private void getTrackers() {
         gps = new GPSTracker(mContext);
         sensor = new SensorTracker(mContext);
         geo = new GeotagActivity(mContext, gps, sensor);
-        pixhawk = new DroneTracker(mContext);
-        modeSpinner = (Spinner) v.findViewById(R.id.modeSpinner);
     }
 
     // Click listeners
     public void getClick() {
-       btnGatherData.setOnClickListener(new View.OnClickListener() {
+        btnGatherData.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
                 // create class object
                 // Each time the Show Location button is pressed
                 // a new thread is started. No way of restarting an old thread
                 // Helps with bugs associated with multiple clicks to Show Location
-                LocationThread thread = new LocationThread(handler);
+                LocationThread thread = new LocationThread(sensorHandler);
                 Log.d("Started thread", "Started thread");
                 runningText.setText("Running...");
                 sensor.startSensors();
@@ -160,44 +182,50 @@ public class DetailsFragment extends Fragment {
                 gps.stopUsingGPS();
                 sensor.stopSensors();
                 run = false;
-                pixhawk.disconnectDrone();
+                disconnectDrone();
                 runningText.setText("Stopped");
             }
         });
 
-/*
+        btnConnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (usePixhawk) {
+                    onBtnConnectTap(view);
+                } else {
+                    alertUser("Error: Change settings");
+                }
+            }
+        });
+
+        btnArm.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                onArmButtonTap(view);
+            }
+        });
+
         modeSpinner.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 onFlightModeSelected(view);
             }
+
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
                 // Do nothing
             }
         });
-*/
-        btnConnect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                usePixhawk = settings.getBoolean("checkbox_pixhawk_connect", false);
-                if (usePixhawk) {
-                    pixhawk.onBtnConnectTap(view);
-                    updateConnectButton(pixhawk.isDroneConnected());
-                } else {
-                    alertUser("Update settings");
-                }
-            }
-        });
+    }
 
-        btnArm.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                pixhawk.onArmButtonTap(view);
-                updateArmButton();
-            }
-        });
+    public void onBtnConnectTap(View view) {
+        if (this.mDrone.isConnected()) {
+            this.mDrone.disconnect();
+        } else {
 
+           //connectTower();
+            connectDrone();
+        }
     }
 
     public void updateConnectButton(boolean isConnected) {
@@ -208,11 +236,216 @@ public class DetailsFragment extends Fragment {
         }
     }
 
-    public void onFlightModeSelected(View view) {
-        VehicleMode vehicleMode = (VehicleMode)modeSpinner.getSelectedItem();
-        pixhawk.onFlightModeSelected(vehicleMode);
+    public void onArmButtonTap(View view) {
+        State vehicleState = mDrone.getAttribute(AttributeType.STATE);
+
+        if (vehicleState.isFlying()) {
+            // Land
+            mDrone.changeVehicleMode(VehicleMode.COPTER_LAND);
+        } else if (vehicleState.isArmed()) {
+            // Take off
+            mDrone.doGuidedTakeoff(10); // Default take off altitude is 10m
+        } else if (!vehicleState.isConnected()) {
+            // Connect
+            alertUser("Connect to a drone first");
+        } else if (vehicleState.isConnected() && !vehicleState.isArmed()){
+            // Connected but not Armed
+            mDrone.arm(true);
+        }
     }
 
+    protected void updateArmButton() {
+        State vehicleState = mDrone.getAttribute(AttributeType.STATE);
+        Button armButton = (Button) v.findViewById(R.id.btnArmTakeOff);
+
+        if (!mDrone.isConnected()) {
+            armButton.setVisibility(View.INVISIBLE);
+        } else {
+            armButton.setVisibility(View.VISIBLE);
+        }
+
+        if (vehicleState.isFlying()) {
+            // Land
+            armButton.setText("LAND");
+        } else if (vehicleState.isArmed()) {
+            // Take off
+            armButton.setText("TAKE OFF");
+        } else if (vehicleState.isConnected()) {
+            // Not armed
+            armButton.setText("ARM");
+        }
+    }
+
+    // ------------------- Drone Tracker related items
+    public void connectDrone() {
+        if (this.mDrone.isConnected()) {
+            disconnectDrone();
+        } else {
+            Bundle extraParams = new Bundle();
+            extraParams.putInt(ConnectionType.EXTRA_USB_BAUD_RATE, 57600);
+            ConnectionParameter mConnectionParameter = new ConnectionParameter(ConnectionType.TYPE_USB, extraParams, null);
+            mDrone.connect(mConnectionParameter);
+        }
+
+    }
+
+    public void disconnectDrone() {
+        if (mDrone.isConnected()) {
+            mDrone.disconnect();
+            alertUser("Drone: Disconnected");
+        }
+    }
+
+    public void connectTower() {
+        if (!mControlTower.isTowerConnected()) {
+            mControlTower.connect(this);
+            mControlTower.registerDrone(mDrone, droneHandler);
+            mDrone.registerDroneListener(this);
+        }
+    }
+
+    public void disconnectTower() {
+        if (mControlTower.isTowerConnected()) {
+            disconnectDrone();
+            mControlTower.disconnect();
+        }
+    }
+
+    @Override
+    public void onTowerConnected() {
+        alertUser("3DR Services connected");
+        mControlTower.registerDrone(mDrone, droneHandler);
+        mDrone.registerDroneListener(this);
+    }
+
+    @Override
+    public void onTowerDisconnected() {
+        alertUser("3DR Services Interrupted");
+    }
+
+    @Override
+    public void onDroneConnectionFailed(ConnectionResult result) {
+
+    }
+
+    @Override
+    public void onDroneEvent(String event, Bundle extras) {
+        switch (event) {
+            case AttributeEvent.STATE_CONNECTED:
+                alertUser("State: Drone connected");
+                updateConnectButton(mDrone.isConnected());
+                updateArmButton();
+                break;
+
+            case AttributeEvent.STATE_DISCONNECTED:
+                alertUser("State: Drone disconnected");
+                updateConnectButton(mDrone.isConnected());
+                updateArmButton();
+                break;
+
+            case AttributeEvent.STATE_VEHICLE_MODE:
+                updateVehicleMode();
+                break;
+
+            case AttributeEvent.TYPE_UPDATED:
+                Type newDroneType = mDrone.getAttribute(AttributeType.TYPE);
+                if (newDroneType.getDroneType() != droneType) {
+                    droneType = newDroneType.getDroneType();
+                    updateVehicleModeForType(droneType);
+                }
+                break;
+
+            case AttributeEvent.GPS_POSITION:
+                // ------------ GET GPS
+                break;
+
+
+            case AttributeEvent.STATE_UPDATED:
+            case AttributeEvent.STATE_ARMING:
+                updateArmButton();
+                break;
+
+            case AttributeEvent.SPEED_UPDATED:
+                updateSpeed();
+                break;
+
+            case AttributeEvent.ALTITUDE_UPDATED:
+                updateAltitude();
+                break;
+
+            case AttributeEvent.HOME_UPDATED:
+                updateDistanceFromHome();
+                break;
+
+            default:
+                //alertUser("Update out of bounds: " + event);
+                break;
+        }
+    }
+
+    @Override
+    public void onDroneServiceInterrupted(String errorMsg) {
+
+    }
+
+    public void onFlightModeSelected(View view) {
+        VehicleMode vehicleMode = (VehicleMode)modeSpinner.getSelectedItem();
+        mDrone.changeVehicleMode(vehicleMode);
+    }
+
+    protected void updateVehicleModeForType(int droneType) {
+        List<VehicleMode> vehicleModes = VehicleMode.getVehicleModePerDroneType(droneType);
+        ArrayAdapter<VehicleMode> vehicleModeArrayAdapter = new ArrayAdapter<VehicleMode>(mContext, android.R.layout.simple_spinner_item, vehicleModes);
+        vehicleModeArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        modeSpinner.setAdapter(vehicleModeArrayAdapter);
+    }
+
+    protected void updateVehicleMode() {
+        State vehicleState = mDrone.getAttribute(AttributeType.STATE);
+        VehicleMode vehicleMode = vehicleState.getVehicleMode();
+        ArrayAdapter arrayAdapter = (ArrayAdapter) modeSpinner.getAdapter();
+        modeSpinner.setSelection(arrayAdapter.getPosition(vehicleMode));
+    }
+
+    //----------------------- Starts
+    @Override
+    public void onStart() {
+        super.onStart();
+        sensor.startSensors();
+        mControlTower.connect(this);
+        updateVehicleModeForType(this.droneType);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        usePixhawk = settings.getBoolean("checkbox_pixhawk_connect", false);
+        if (run) {
+            connectTower();
+            sensor.startSensors();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        sensor.stopSensors();
+        if (mDrone.isConnected()) {
+            disconnectDrone();
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mDrone.isConnected()) {
+            disconnectDrone();
+            updateConnectButton(false);
+        }
+        disconnectTower();
+    }
+
+    // ---------------------- DATA GATHERING
     /**
      * Helper class used to run tasks in the background
      * Will continuously gather gps data and smartphone orientation data until user clicks cancel
@@ -238,32 +471,11 @@ public class DetailsFragment extends Fragment {
                         //Log.d("GPS location", "Updated");
                         getOnBoardAngles();
                         //Log.d("Angles", "updated");
-                        if (usePixhawk && pixhawk.isDroneConnected())
-                            getPixhawkData();
+
                     }
                 });
             }
         }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (run) {
-            sensor.startSensors();
-            if (usePixhawk) {
-                pixhawk.connectDrone();
-                pixhawk.connectTower();
-            }
-        }
-
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        sensor.stopSensors();
-        pixhawk.disconnectDrone(); // Disconnects tower and drone
     }
 
     public void getOnBoardGPS() {
@@ -298,17 +510,54 @@ public class DetailsFragment extends Fragment {
         }
     }
 
-    public void getPixhawkData() {
-        if (pixhawk.isDroneConnected() && usePixhawk) {
-            double altitude = pixhawk.getAltitude();
-            double groundSpeed = pixhawk.getSpeed();
-            pixhawk.updateDistanceFromHome();
-            double distance = pixhawk.getDistanceFromHome();
-            altitudeDroneText.setText(String.format(".%3.1f", altitude) + "m");
-            speedDroneText.setText(String.format("3.1f", groundSpeed) + "m/s");
-            distanceDroneText.setText(String.format("3.1f", distance) + "m");
+    /*public void getPixhawkData() {
 
+        Altitude droneAltitude = mDrone.getAttribute(AttributeType.ATTITUDE);
+        Speed droneSpeed = mDrone.getAttribute(AttributeType.SPEED);
+        altitudeDroneText.setText(String.format(".%3.1f", droneAltitude.getAltitude()) + "m");
+        speedDroneText.setText(String.format("3.1f", droneSpeed.getGroundSpeed()) + "m/s");
+        updateDistanceFromHome();
+
+    }*/
+
+    protected void updateSpeed() {
+        Speed droneSpeed = mDrone.getAttribute(AttributeType.SPEED);
+        speedDroneText.setText(String.format("%3.1f", droneSpeed.getGroundSpeed()) + "m/s");
+    }
+
+    protected void updateAltitude() {
+        Altitude droneAltitude = (Altitude)this.mDrone.getAttribute(AttributeType.ALTITUDE);
+        altitudeDroneText.setText(String.format("%3.1f", droneAltitude.getAltitude()) + "m");
+    }
+
+    protected void updateDistanceFromHome() {
+        TextView distanceTextView = (TextView)v.findViewById(R.id.distanceDroneText);
+        Altitude droneAltitude = this.mDrone.getAttribute(AttributeType.ALTITUDE);
+        double vehicleAltitude = droneAltitude.getAltitude();
+        Gps droneGps = this.mDrone.getAttribute(AttributeType.GPS);
+        LatLong vehiclePosition = droneGps.getPosition();
+
+        double distanceFromHome =  0;
+
+        if (droneGps.isValid()) {
+            LatLongAlt vehicle3DPosition = new LatLongAlt(vehiclePosition.getLatitude(), vehiclePosition.getLongitude(), vehicleAltitude);
+            Home droneHome = mDrone.getAttribute(AttributeType.HOME);
+            distanceFromHome = distanceBetweenPoints(droneHome.getCoordinate(), vehicle3DPosition);
+        } else {
+            distanceFromHome = 0;
         }
+
+        distanceTextView.setText(String.format("%3.1f", distanceFromHome) + "m");
+    }
+
+    protected double distanceBetweenPoints(LatLongAlt pointA, LatLongAlt pointB) {
+        if (pointA == null || pointB == null) {
+            return 0;
+        }
+        double dx = pointA.getLatitude() - pointB.getLatitude();
+        double dy  = pointA.getLongitude() - pointB.getLongitude();
+        double dz = pointA.getAltitude() - pointB.getAltitude();
+        return Math.sqrt(dx*dx + dy*dy + dz*dz);
     }
 
     public void getOnBoardAngles() {
@@ -332,25 +581,4 @@ public class DetailsFragment extends Fragment {
         Toast.makeText(mContext, message, Toast.LENGTH_LONG).show();
     }
 
-    protected void updateArmButton() {
-        State vehicleState = pixhawk.getVehicleState();
-        Button armButton = (Button) v.findViewById(R.id.btnArmTakeOff);
-
-        if (!pixhawk.isDroneConnected()) {
-            armButton.setVisibility(View.INVISIBLE);
-        } else {
-            armButton.setVisibility(View.VISIBLE);
-        }
-
-        if (vehicleState.isFlying()) {
-            // Land
-            armButton.setText("LAND");
-        } else if (vehicleState.isArmed()) {
-            // Take off
-            armButton.setText("TAKE OFF");
-        } else if (vehicleState.isConnected()) {
-            // Not armed
-            armButton.setText("ARM");
-        }
-    }
 }

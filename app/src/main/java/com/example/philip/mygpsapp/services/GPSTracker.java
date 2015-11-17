@@ -159,7 +159,9 @@ public class GPSTracker extends Service implements LocationListener {
                         }
                     }
                 }
-                calculateGpsResolution((int)location.getLatitude());
+                if (location != null ) {
+                    calculateGpsResolution((int)location.getLatitude());
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -31,6 +31,8 @@
                 android:value="com.example.philip.mygpsapp.activities.MainActivity"/>
         </activity>
 
+
+
     </application>
 
 </manifest>

@@ -393,16 +393,18 @@
                     android:id="@+id/vehicleModeText"
                     android:layout_column="1" />
 
-                <Spinner
-                    android:layout_width="200dp"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/modeSpinner"
-                    android:spinnerMode="dropdown"
-                    android:layout_column="3" />
-
             </TableRow>
         </TableLayout>
     </HorizontalScrollView>
     </ScrollView>
+
+    <Spinner
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:spinnerMode="dropdown"
+        android:id="@+id/modeSpinner"
+        android:entries="@array/drone_connection_types"
+        android:layout_below="@+id/btnCancel"
+        android:layout_alignStart="@+id/btnCancel" />
 
 </RelativeLayout>
