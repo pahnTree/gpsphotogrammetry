@@ -39,8 +39,6 @@ import com.o3dr.services.android.lib.drone.property.State;
 import com.o3dr.services.android.lib.drone.property.Type;
 import com.o3dr.services.android.lib.drone.property.VehicleMode;
 
-import org.w3c.dom.Text;
-
 import java.util.List;
 
 /**
@@ -68,6 +66,9 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
     private TextView latitudeDroneDegText;
     private TextView longitudeDroneDegText;
     private TextView distanceDroneText;
+    private TextView azimuthDroneText;
+    private TextView pitchDroneText;
+    private TextView rollDroneText;
 
     private View v;
 
@@ -89,6 +90,8 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
     private Drone mDrone;
     private int droneType = Type.TYPE_UNKNOWN;
     private Spinner modeSpinner;
+    private Gps droneGPS;
+    private LatLong droneLatLong;
 
     private final String PREFERENCE_FILE_NAME = "preferences";
     private SharedPreferences settings;
@@ -140,7 +143,9 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
         longitudeDroneDegText = (TextView) v.findViewById(R.id.longitudeDroneDegText);
         distanceDroneText = (TextView) v.findViewById(R.id.distanceDroneText);
         speedDroneText = (TextView) v.findViewById(R.id.speedDroneText);
-
+        azimuthDroneText = (TextView) v.findViewById(R.id.azimuthDroneText);
+        pitchDroneText = (TextView) v.findViewById(R.id.pitchDroneText);
+        rollDroneText = (TextView) v.findViewById(R.id.rollDroneText);
     }
 
     private void getButtons() {
@@ -219,13 +224,7 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
     }
 
     public void onBtnConnectTap(View view) {
-        if (this.mDrone.isConnected()) {
-            this.mDrone.disconnect();
-        } else {
-
-           //connectTower();
-            connectDrone();
-        }
+        connectDrone();
     }
 
     public void updateConnectButton(boolean isConnected) {
@@ -280,13 +279,11 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
     public void connectDrone() {
         if (this.mDrone.isConnected()) {
             disconnectDrone();
-        } else {
-            Bundle extraParams = new Bundle();
-            extraParams.putInt(ConnectionType.EXTRA_USB_BAUD_RATE, 57600);
-            ConnectionParameter mConnectionParameter = new ConnectionParameter(ConnectionType.TYPE_USB, extraParams, null);
-            mDrone.connect(mConnectionParameter);
         }
-
+        Bundle extraParams = new Bundle();
+        extraParams.putInt(ConnectionType.EXTRA_USB_BAUD_RATE, 57600);
+        ConnectionParameter mConnectionParameter = new ConnectionParameter(ConnectionType.TYPE_USB, extraParams, null);
+        mDrone.connect(mConnectionParameter);
     }
 
     public void disconnectDrone() {
@@ -356,7 +353,7 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
                 break;
 
             case AttributeEvent.GPS_POSITION:
-                // ------------ GET GPS
+                updateGPSPosition();
                 break;
 
 
@@ -373,6 +370,7 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
                 updateAltitude();
                 break;
 
+
             case AttributeEvent.HOME_UPDATED:
                 updateDistanceFromHome();
                 break;
@@ -387,6 +385,8 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
     public void onDroneServiceInterrupted(String errorMsg) {
 
     }
+
+
 
     public void onFlightModeSelected(View view) {
         VehicleMode vehicleMode = (VehicleMode)modeSpinner.getSelectedItem();
@@ -528,6 +528,7 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
     protected void updateAltitude() {
         Altitude droneAltitude = (Altitude)this.mDrone.getAttribute(AttributeType.ALTITUDE);
         altitudeDroneText.setText(String.format("%3.1f", droneAltitude.getAltitude()) + "m");
+        updateGPSPosition();
     }
 
     protected void updateDistanceFromHome() {
@@ -558,6 +559,13 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
         double dy  = pointA.getLongitude() - pointB.getLongitude();
         double dz = pointA.getAltitude() - pointB.getAltitude();
         return Math.sqrt(dx*dx + dy*dy + dz*dz);
+    }
+
+    protected void updateGPSPosition() {
+        droneGPS = mDrone.getAttribute(AttributeType.GPS);
+        droneLatLong = droneGPS.getPosition();
+        latitudeDroneDegText.setText("" + droneLatLong.getLatitude() + "\u00b0");
+        longitudeDroneDegText.setText("" + droneLatLong.getLongitude() + "\u00b0");
     }
 
     public void getOnBoardAngles() {
