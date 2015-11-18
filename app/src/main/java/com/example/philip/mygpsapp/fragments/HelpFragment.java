@@ -50,4 +50,6 @@ public class HelpFragment extends Fragment{
         }
         return byteArrayOutputStream.toString();
     }
+
+
 }

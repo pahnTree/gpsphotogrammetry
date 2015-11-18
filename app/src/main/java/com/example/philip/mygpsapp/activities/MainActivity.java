@@ -128,10 +128,6 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
                 return true;
 
-            case R.id.action_help:
-                setContentView(R.layout.fragment_help);
-                return true;
-
             default:
                 return super.onOptionsItemSelected(item);
         }

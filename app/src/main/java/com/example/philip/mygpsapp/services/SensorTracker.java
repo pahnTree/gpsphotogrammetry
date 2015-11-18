@@ -11,6 +11,8 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 
+import com.example.philip.mygpsapp.R;
+
 import static android.hardware.Sensor.TYPE_ORIENTATION;
 
 /**
@@ -22,15 +24,18 @@ public class SensorTracker extends Activity implements SensorEventListener {
     private Sensor gyro;
     private Sensor accel;
     private Sensor compass;
+    private Sensor gravity;
 
     private boolean gyroscopeIsAvailable;
     private boolean accelerometerIsAvailable;
     private boolean magneticFieldIsAvailable;
+    private boolean gravityIsAvailable;
 
     private float azimuth; // Angle from magnetic north
     private float pitch; // When in portrait, tilting phone towards face
     private float roll; // When in portrait, tilting phone side to side
 
+    private float lastX, lastY, lastZ;
     private boolean ready = false;
     private float[] accelValues = new float[3];
     private float[] compassValues = new float[3];
@@ -47,6 +52,7 @@ public class SensorTracker extends Activity implements SensorEventListener {
         this.mContext = context;
         mSensorManager = (SensorManager) mContext.getSystemService(SENSOR_SERVICE);
         getAngles();
+
     }
 
     public void getAngles() {
@@ -59,23 +65,29 @@ public class SensorTracker extends Activity implements SensorEventListener {
 
     public void getSensorManagers() {
         if (mSensorManager.getSensorList(Sensor.TYPE_GYROSCOPE).size() > 0) {
-            Log.d("Gyroscope enabled", "Gyroscope enabled");
+            Log.d("Sensors", "Gyroscope enabled");
             gyroscopeIsAvailable = true;
             gyro = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         }
 
         // Acceleration on device
         if (mSensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER).size() > 0) {
-            Log.d("Accelerometer enabled", "Accelerometer enabled");
+            Log.d("Sensors", "Accelerometer enabled");
             accelerometerIsAvailable = true;
             accel = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         }
 
         // Finds magnetic north (May be uncalibrated)
         if (mSensorManager.getSensorList(Sensor.TYPE_MAGNETIC_FIELD).size() > 0) {
-            Log.d("Magnetic Field enabled", "Magnetic Field enabled");
+            Log.d("Sensors", "Magnetic Field enabled");
             magneticFieldIsAvailable = true;
             compass = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        }
+
+        if (mSensorManager.getSensorList(Sensor.TYPE_GRAVITY).size() > 0) {
+            Log.d("Sensors", "Gravity accelerometer enabled");
+            gravityIsAvailable = true;
+            gravity = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
         }
     }
 
@@ -109,32 +121,44 @@ public class SensorTracker extends Activity implements SensorEventListener {
             }
             ready = (accelValues[2] != 0) ? true : false;
         }
-        /* legacy code
-        if (event.sensor.getType() == Sensor.TYPE_ORIENTATION) {
-            for (int i = 0; i < 3; i++) {
-                orientationValues[i] = event.values[i];
-            }
-        }
-        */
 
-        /*
+
         if (!ready) {
             return;
         }
-        */
-        boolean success = mSensorManager.getRotationMatrix(inR, inclineMatrix, accelValues, compassValues);
-        if (success) {
-            // Got a good rotation matrix
-            Log.d("Rotation matrix", "Success");
-            mSensorManager.getOrientation(inR, prefValues); // Loads the matrix into prefValues
-            doUpdate();
-            mInclination = mSensorManager.getInclination(inclineMatrix);
-            // Display every 10th value
-            if (counter++ % 10 == 0) {
+
+        // To get rid of random noise
+        // The vibrations of actual flight should be more than enough to overcome this
+        float deltaX, deltaY, deltaZ;
+        deltaX = lastX - accelValues[0];
+        deltaY = lastY - accelValues[1];
+        deltaZ = lastZ - accelValues[2];
+
+        if (deltaX < 1) deltaX = 0;
+        if (deltaY < 1) deltaY = 0;
+        if (deltaZ < 1) deltaZ = 0;
+
+        lastX = accelValues[0];
+        lastY = accelValues[1];
+        lastZ = accelValues[2];
+
+        if (deltaX != 0 || deltaY != 0 || deltaZ != 0) {
+            boolean success = mSensorManager.getRotationMatrix(inR, inclineMatrix, accelValues, compassValues);
+            if (success) {
+                // Got a good rotation matrix
+                Log.d("Rotation matrix", "Success");
+                mSensorManager.getOrientation(inR, prefValues); // Loads the matrix into prefValues
                 doUpdate();
-                counter = 1;
+                mInclination = mSensorManager.getInclination(inclineMatrix);
+                // Display every 10th value
+                if (counter++ % 10 == 0) {
+                    doUpdate();
+                    counter = 1;
+                }
             }
+
         }
+
     }
 
     @Override

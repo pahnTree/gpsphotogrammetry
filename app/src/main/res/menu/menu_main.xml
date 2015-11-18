@@ -5,8 +5,5 @@
         android:id="@+id/action_settings"
         android:title="@string/settings"
         gpsapp:showAsAction="never"/>
-    <item
-        android:id="@+id/action_help"
-        android:title="@string/help"
-        gpsapp:showAsAction="never"/>
+
 </menu>

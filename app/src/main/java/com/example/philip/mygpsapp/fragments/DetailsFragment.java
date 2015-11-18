@@ -16,6 +16,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.philip.mygpsapp.services.DroneTracker;
 import com.example.philip.mygpsapp.services.GPSTracker;
 import com.example.philip.mygpsapp.activities.GeotagActivity;
 import com.example.philip.mygpsapp.R;
@@ -80,6 +81,7 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
     private GPSTracker gps;
     private SensorTracker sensor;
     private GeotagActivity geo;
+    private DroneTracker droneTracker;
 
     private Context mContext;
     private boolean run;
@@ -112,6 +114,7 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
         mContext = container.getContext();
         this.mControlTower = new ControlTower(mContext);
         this.mDrone = new Drone(mContext);
+
         this.mControlTower.connect(this);
 
         settings = mContext.getSharedPreferences(PREFERENCE_FILE_NAME, 0);
@@ -160,6 +163,7 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
         gps = new GPSTracker(mContext);
         sensor = new SensorTracker(mContext);
         geo = new GeotagActivity(mContext, gps, sensor);
+        droneTracker = new DroneTracker(mContext);
     }
 
     // Click listeners
@@ -197,6 +201,9 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
             public void onClick(View view) {
                 if (usePixhawk) {
                     onBtnConnectTap(view);
+                    if (!mDrone.isConnected()) {
+                        alertUser("Error: Unable to connect");
+                    }
                 } else {
                     alertUser("Error: Change settings");
                 }
@@ -310,6 +317,7 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
 
     @Override
     public void onTowerConnected() {
+        Log.d("3DR Services", "Connected to tower");
         alertUser("3DR Services connected");
         mControlTower.registerDrone(mDrone, droneHandler);
         mDrone.registerDroneListener(this);
@@ -322,11 +330,12 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
 
     @Override
     public void onDroneConnectionFailed(ConnectionResult result) {
-
+        Log.d("Error: ", result.getErrorMessage());
     }
 
     @Override
     public void onDroneEvent(String event, Bundle extras) {
+        Log.d("Drone Event", "Updated");
         switch (event) {
             case AttributeEvent.STATE_CONNECTED:
                 alertUser("State: Drone connected");
@@ -364,10 +373,12 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
 
             case AttributeEvent.SPEED_UPDATED:
                 updateSpeed();
+                //updateGPSPosition();
                 break;
 
             case AttributeEvent.ALTITUDE_UPDATED:
                 updateAltitude();
+                //updateGPSPosition();
                 break;
 
 
@@ -383,10 +394,8 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
 
     @Override
     public void onDroneServiceInterrupted(String errorMsg) {
-
+        Log.d("Error: ", errorMsg);
     }
-
-
 
     public void onFlightModeSelected(View view) {
         VehicleMode vehicleMode = (VehicleMode)modeSpinner.getSelectedItem();
@@ -394,6 +403,7 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
     }
 
     protected void updateVehicleModeForType(int droneType) {
+        alertUser("Obtained vehicle modes");
         List<VehicleMode> vehicleModes = VehicleMode.getVehicleModePerDroneType(droneType);
         ArrayAdapter<VehicleMode> vehicleModeArrayAdapter = new ArrayAdapter<VehicleMode>(mContext, android.R.layout.simple_spinner_item, vehicleModes);
         vehicleModeArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -429,18 +439,20 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
     @Override
     public void onPause() {
         super.onPause();
-        sensor.stopSensors();
-        if (mDrone.isConnected()) {
-            disconnectDrone();
+        if (!run) {
+            sensor.stopSensors();
+            if (mDrone.isConnected()) {
+                disconnectDrone();
+            }
         }
     }
 
     @Override
     public void onStop() {
         super.onStop();
+        sensor.stopSensors();
         if (mDrone.isConnected()) {
             disconnectDrone();
-            updateConnectButton(false);
         }
         disconnectTower();
     }
@@ -471,13 +483,17 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
                         //Log.d("GPS location", "Updated");
                         getOnBoardAngles();
                         //Log.d("Angles", "updated");
-
+                        //if (usePixhawk && mDrone.isConnected()) {
+                        //    getDroneGPSData();
+                        //}
                     }
                 });
             }
         }
     }
 
+
+    // ---------------- PHONE DATA
     public void getOnBoardGPS() {
         // check if GPS enabled
         if(gps.canGetLocation()){
@@ -510,16 +526,24 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
         }
     }
 
-    /*public void getPixhawkData() {
+    public void getOnBoardAngles() {
+        if (sensor.getAccelerometerIsAvailable() && sensor.getMagneticFieldIsAvailable()) {
+            //Log.d("Angles", "Can get angles");
+            float azimuth = sensor.getAzimuth();
+            float pitch = -1*sensor.getPitch();
+            float roll = sensor.getRoll();
 
-        Altitude droneAltitude = mDrone.getAttribute(AttributeType.ATTITUDE);
-        Speed droneSpeed = mDrone.getAttribute(AttributeType.SPEED);
-        altitudeDroneText.setText(String.format(".%3.1f", droneAltitude.getAltitude()) + "m");
-        speedDroneText.setText(String.format("3.1f", droneSpeed.getGroundSpeed()) + "m/s");
-        updateDistanceFromHome();
+            azimuthText.setText("" + Math.round(azimuth) + "\u00b0");
+            pitchText.setText("" + Math.round(pitch) + "\u00b0");
+            rollText.setText("" + Math.round(roll) + "\u00b0");
+        } else {
+            azimuthText.setText("Error");
+            pitchText.setText("Error");
+            rollText.setText("Error");
+        }
+    }
 
-    }*/
-
+    // ------------------- DRONE DATA
     protected void updateSpeed() {
         Speed droneSpeed = mDrone.getAttribute(AttributeType.SPEED);
         speedDroneText.setText(String.format("%3.1f", droneSpeed.getGroundSpeed()) + "m/s");
@@ -562,28 +586,21 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
     }
 
     protected void updateGPSPosition() {
+        Log.d("Drone GPS", "Updated with Location");
         droneGPS = mDrone.getAttribute(AttributeType.GPS);
         droneLatLong = droneGPS.getPosition();
         latitudeDroneDegText.setText("" + droneLatLong.getLatitude() + "\u00b0");
         longitudeDroneDegText.setText("" + droneLatLong.getLongitude() + "\u00b0");
     }
 
-    public void getOnBoardAngles() {
-        if (sensor.getAccelerometerIsAvailable() && sensor.getMagneticFieldIsAvailable()) {
-            //Log.d("Angles", "Can get angles");
-            float azimuth = sensor.getAzimuth();
-            float pitch = -1*sensor.getPitch();
-            float roll = sensor.getRoll();
-
-            azimuthText.setText("" + Math.round(azimuth) + "\u00b0 (from North)");
-            pitchText.setText("" + Math.round(pitch) + "\u00b0");
-            rollText.setText("" + Math.round(roll) + "\u00b0");
-        } else {
-            azimuthText.setText("Error");
-            pitchText.setText("Error");
-            rollText.setText("Error");
-        }
+    public void getDroneGPSData() {
+        Log.d("Drone GPS", "Updated with MAVLink");
+        LatLong latlong = droneTracker.getLastDronePosition();
+        latitudeDroneDegText.setText(String.format("%.5f", latlong.getLatitude()) + "\u00b0");
+        longitudeDroneDegText.setText(String.format("%.5f", latlong.getLongitude()) + "\u00b0");
     }
+
+
 
     public void alertUser(String message) {
         Toast.makeText(mContext, message, Toast.LENGTH_LONG).show();
