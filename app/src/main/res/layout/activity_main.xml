@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
+    android:layout_height="fill_parent"
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <Toolbar
+    <android.support.v7.widget.Toolbar
+        tools:targetAPI="19"
         android:id="@+id/toolbar"
         android:title="photogrammetry"
         android:layout_width="match_parent"
@@ -42,6 +43,7 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"/>
         </LinearLayout>
+
     </android.support.v4.app.FragmentTabHost>
 
 </RelativeLayout>
