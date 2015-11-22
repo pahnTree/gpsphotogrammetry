@@ -4,13 +4,11 @@ package com.example.philip.mygpsapp.services;
  * Created by Philip on 11/10/2015.
  */
 public class Coordinates {
-    public int x, y; // The pixel locations relative to origin
     public float distanceX, distanceY; // The distances away in meters relative to origin
     public double geoX, geoY; // The GPS coordinates at this point
 
-    public Coordinates(int x, int y) {
-        this.x = x;
-        this.y = y;
+    public Coordinates() {
+        // Do nothing
     }
 
     public Coordinates(float x, float y) {
@@ -23,9 +21,14 @@ public class Coordinates {
         this.geoY = geoY;
     }
 
-    public Coordinates(int x, int y, float distanceX, float distanceY, double geoX, double geoY) {
-        this.x = x;
-        this.y = y;
+    /**
+     * Constructor for the distances from the origin
+     * @param distanceX The distance in meters
+     * @param distanceY The distance in meters
+     * @param geoX The distance in Degrees Longitude
+     * @param geoY The distance in Degrees Latitude
+     */
+    public Coordinates(float distanceX, float distanceY, double geoX, double geoY) {
         this.distanceX = distanceX;
         this.distanceY = distanceY;
         this.geoX = geoX;
