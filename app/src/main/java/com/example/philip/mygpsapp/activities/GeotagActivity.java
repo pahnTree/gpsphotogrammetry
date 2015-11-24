@@ -23,7 +23,8 @@ public class GeotagActivity extends Activity {
     private double altitude;
     // The Field of View is obtained manually
     // Differs from phone to phone
-    // These values are for when the phone is in portrait mode
+    // These values are for when the phone is in portrait mode (from middle to one side)
+    // Total viewing angle is x2
     // Horizontal is the short side, vertical is the long side
     private final float cameraFieldOfViewHorizontal = 18.33f; // Obtain with actual measurements
     private final float cameraFieldOfViewVertical = 30.96f;
@@ -91,7 +92,7 @@ public class GeotagActivity extends Activity {
 
     }
 
-    public void loadData() {
+    private void loadData() {
         this.azimuth = mSensor.getAzimuth();
         this.pitch = mSensor.getPitch();
         this.roll = mSensor.getRoll();
@@ -106,16 +107,25 @@ public class GeotagActivity extends Activity {
         double xlatm, xlonm, ylatm, ylonm; // Distances accounting for azimuth in meters
         double deltaLatm, deltaLonm; // Total changes for lat, lon
         double deltaLatDeg, deltaLonDeg; // Convert from meter to degree
+
+        double yAngle = cameraFieldOfViewVertical - pitch;
+        double xAngle = cameraFieldOfViewHorizontal + roll;
+        double aziAngle = (Math.abs(azimuth) > 90) ? 180 - Math.abs(azimuth) : Math.abs(azimuth);
+        // Convert to radians
+        yAngle = Math.toRadians(yAngle);
+        xAngle = Math.toRadians(xAngle);
+        aziAngle = Math.toRadians(aziAngle);
+
         // When the phone is pitch up
         // The distance in meters between the GPS source and the bottom on the photo
-        y = altitude * Math.tan(cameraFieldOfViewVertical - pitch);
-        ylatm = y * Math.cos(azimuth);
-        ylonm = y * Math.sin(azimuth);
+        y = altitude * Math.tan(yAngle);
+        ylatm = y * Math.cos(aziAngle);
+        ylonm = y * Math.sin(aziAngle);
 
         // If the phone is pointing towards the right when roll is -
-        x = altitude * Math.atan(cameraFieldOfViewHorizontal + roll);
-        xlatm = x * Math.sin(azimuth);
-        xlonm = x * Math.cos(azimuth);
+        x = altitude * Math.tan(xAngle);
+        xlatm = x * Math.sin(aziAngle);
+        xlonm = x * Math.cos(aziAngle);
 
         // Create a coordinate for Bottom left corner of picture
         deltaLatm = (azimuth >= 0) ? ylatm - xlatm : ylatm + xlatm;
@@ -125,40 +135,26 @@ public class GeotagActivity extends Activity {
         deltaLatDeg = METER_TO_DEGREE_CONVERSION * deltaLatm;
         deltaLonDeg = METER_TO_DEGREE_CONVERSION * deltaLonm;
 
-        if (Math.abs(azimuth) >= 90 ) {
-            // If pitch > cameraFieldofViewVertical, the GPS is out of the image view
-            //      Have to add the deltaLat to GPS coordinates
-            if (pitch > cameraFieldOfViewVertical) {
-                //BottomLeft = new LatLong();
-            } else {
+        double ptBLlat;
+        double ptBLlon;
 
-            }
+        // South is azimuth -135 >> -180 && 180 >> 135
+        // West is azimuth -135 >> -45
+        // North is azimuth -45 >> 0 && 0 >> 45
+        // East is azimuth 45 >> 135
 
-            if (roll > cameraFieldOfViewHorizontal) {
+        /*
+        Adding or subtracting the Delta Latitude/Longitudes depends on the pitch, roll, and azimuth
+        of the phone and changes which slight variations of the angles. Need to figure out how to
+        calculate when to add or subtract.
+        May have something to do with the Field Of View vs Pitch/Roll
+         */
+        BottomLeft = new LatLong(ptBLlat, ptBLlon);
 
-            } else {
-
-            }
-        }
-
-
-    }
-
-    private void negativeRollCaluclations() {
 
     }
 
-    private void positiveRollCalculations() {
 
-    }
-
-    private void negativePitchCalculations() {
-
-    }
-
-    private void positivePitchCalculations() {
-
-    }
 
 
 }
