@@ -143,20 +143,23 @@ public class SensorTracker extends Activity implements SensorEventListener {
         lastZ = accelValues[2];
 
         if (deltaX != 0 || deltaY != 0 || deltaZ != 0) {
-            boolean success = mSensorManager.getRotationMatrix(inR, inclineMatrix, accelValues, compassValues);
-            if (success) {
-                // Got a good rotation matrix
-                Log.d("Rotation matrix", "Success");
-                mSensorManager.getOrientation(inR, prefValues); // Loads the matrix into prefValues
-                doUpdate();
-                mInclination = mSensorManager.getInclination(inclineMatrix);
-                // Display every 10th value
-                if (counter++ % 10 == 0) {
-                    doUpdate();
-                    counter = 1;
-                }
-            }
 
+
+        }
+
+        // Move this section into the above if statement to remove noise
+        boolean success = mSensorManager.getRotationMatrix(inR, inclineMatrix, accelValues, compassValues);
+        if (success) {
+            // Got a good rotation matrix
+            Log.d("Rotation matrix", "Success");
+            mSensorManager.getOrientation(inR, prefValues); // Loads the matrix into prefValues
+            doUpdate();
+            mInclination = mSensorManager.getInclination(inclineMatrix);
+            // Display every 10th value
+            if (counter++ % 10 == 0) {
+                doUpdate();
+                counter = 1;
+            }
         }
 
     }

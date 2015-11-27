@@ -71,6 +71,15 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
     private TextView pitchDroneText;
     private TextView rollDroneText;
 
+    private TextView BLgpsLat;
+    private TextView BLgpsLon;
+    private TextView BRgpsLat;
+    private TextView BRgpsLon;
+    private TextView TLgpsLat;
+    private TextView TLgpsLon;
+    private TextView TRgpsLat;
+    private TextView TRgpsLon;
+
     private View v;
 
     private Button btnGatherData;
@@ -149,6 +158,15 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
         azimuthDroneText = (TextView) v.findViewById(R.id.azimuthDroneText);
         pitchDroneText = (TextView) v.findViewById(R.id.pitchDroneText);
         rollDroneText = (TextView) v.findViewById(R.id.rollDroneText);
+
+        BLgpsLat = (TextView) v.findViewById(R.id.BLgpsLat);
+        BLgpsLon = (TextView) v.findViewById(R.id.BLgpsLon);
+        BRgpsLat = (TextView) v.findViewById(R.id.BRgpsLat);
+        BRgpsLon = (TextView) v.findViewById(R.id.BRgpsLon);
+        TLgpsLat = (TextView) v.findViewById(R.id.TLgpsLat);
+        TLgpsLon = (TextView) v.findViewById(R.id.TLgpsLon);
+        TRgpsLat = (TextView) v.findViewById(R.id.TRgpsLat);
+        TRgpsLon = (TextView) v.findViewById(R.id.TRgpsLon);
     }
 
     private void getButtons() {
@@ -229,6 +247,107 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
             }
         });
     }
+
+    // ---------------------- DATA GATHERING
+    /**
+     * Helper class used to run tasks in the background
+     * Will continuously gather gps data and smartphone orientation data until user clicks cancel
+     */
+    class LocationThread extends Thread implements Runnable {
+        private final Handler mHandler;
+        LocationThread(Handler handler) {
+            mHandler = handler;
+        }
+        @Override
+        public void run() {
+            while (run) {
+                try {
+                    Log.d("Thread sleep", "Pause for 100ms");
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        getOnBoardGPS();
+                        //Log.d("GPS location", "Updated");
+                        getOnBoardAngles();
+                        //Log.d("Angles", "updated");
+                        //if (usePixhawk && mDrone.isConnected()) {
+                        //    getDroneGPSData();
+                        //}
+                        getImageGPSCoord();
+                    }
+                });
+            }
+        }
+    }
+
+
+    // ---------------- PHONE DATA
+    public void getOnBoardGPS() {
+        // check if GPS enabled
+        if(gps.canGetLocation()){
+            //Log.d("GPS", "Can get location");
+            // If the GPS if working
+            double latitude = gps.getLatitude();
+            double longitude = gps.getLongitude();
+            double altitude = gps.getAltitude();
+            String latMinSec = gps.getLatMinSec();
+            String lonMinSec = gps.getLonMinSec();
+            altitude = altitude - gps.getGEOID(0); // GEOID 0 for Cresskill, 1 for Rutgers, other for Webster Field
+            double speed = gps.getSpeed()*2.23694; // Convert from m/s to mph
+            // 5th decimal place is about 0.8627m resolution at 38N Latitutde (Webster Field)
+            latitudeDegText.setText(String.format("%.5f", latitude));
+            latitudeMinSecText.setText(latMinSec);
+            longitudeDegText.setText(String.format("%.5f", longitude));
+            longitudeMinSecText.setText(lonMinSec);
+            altitudeText.setText(String.format("%.1f", altitude) + "m");
+            speedText.setText((int)speed + "mph");
+            lastUpdateTimeText.setText(gps.getLastUpdateTime());
+
+            //Toast.makeText(getApplicationContext(), "Your Location is - \nLat: " + latitude + "\nLong: " + longitude, Toast.LENGTH_LONG).show();
+        } else {
+            // can't get location
+            // GPS or Network is not enabled
+            // Ask user to enable GPS/network in settings
+            if (gps.getIsExternalGPSEnabled()) {
+                gps.showSettingsAlert();
+            }
+        }
+    }
+
+    public void getOnBoardAngles() {
+        if (sensor.getAccelerometerIsAvailable() && sensor.getMagneticFieldIsAvailable()) {
+            //Log.d("Angles", "Can get angles");
+            float azimuth = sensor.getAzimuth();
+            float pitch = -1*sensor.getPitch();
+            float roll = sensor.getRoll();
+
+            azimuthText.setText("" + Math.round(azimuth) + "\u00b0");
+            pitchText.setText("" + Math.round(pitch) + "\u00b0");
+            rollText.setText("" + Math.round(roll) + "\u00b0");
+        } else {
+            azimuthText.setText("Error");
+            pitchText.setText("Error");
+            rollText.setText("Error");
+        }
+    }
+
+    public void getImageGPSCoord() {
+        geo.calculateLocations(gps, sensor);
+        BLgpsLat.setText(String.format("%.5f",geo.getBottomLeft().getLatitude()) + "\u00b0");
+        BLgpsLon.setText(String.format("%.5f",geo.getBottomLeft().getLongitude()) + "\u00b0");
+        BRgpsLat.setText(String.format("%.5f",geo.getBottomRight().getLatitude()) + "\u00b0");
+        BRgpsLon.setText(String.format("%.5f", geo.getBottomRight().getLongitude()) + "\u00b0");
+        TLgpsLat.setText(String.format("%.5f", geo.getTopLeft().getLatitude()) + "\u00b0");
+        TLgpsLon.setText(String.format("%.5f", geo.getTopLeft().getLongitude()) + "\u00b0");
+        TRgpsLat.setText(String.format("%.5f", geo.getTopRight().getLatitude()) + "\u00b0");
+        TRgpsLon.setText(String.format("%.5f", geo.getTopRight().getLongitude()) + "\u00b0");
+    }
+
+    // --------------- Drone activities
 
     public void onBtnConnectTap(View view) {
         connectDrone();
@@ -457,91 +576,6 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
         disconnectTower();
     }
 
-    // ---------------------- DATA GATHERING
-    /**
-     * Helper class used to run tasks in the background
-     * Will continuously gather gps data and smartphone orientation data until user clicks cancel
-     */
-    class LocationThread extends Thread implements Runnable {
-        private final Handler mHandler;
-        LocationThread(Handler handler) {
-            mHandler = handler;
-        }
-        @Override
-        public void run() {
-            while (run) {
-                try {
-                    Log.d("Thread sleep", "Pause for 100ms");
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                mHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        getOnBoardGPS();
-                        //Log.d("GPS location", "Updated");
-                        getOnBoardAngles();
-                        //Log.d("Angles", "updated");
-                        //if (usePixhawk && mDrone.isConnected()) {
-                        //    getDroneGPSData();
-                        //}
-                    }
-                });
-            }
-        }
-    }
-
-
-    // ---------------- PHONE DATA
-    public void getOnBoardGPS() {
-        // check if GPS enabled
-        if(gps.canGetLocation()){
-            //Log.d("GPS", "Can get location");
-            // If the GPS if working
-            double latitude = gps.getLatitude();
-            double longitude = gps.getLongitude();
-            double altitude = gps.getAltitude();
-            String latMinSec = gps.getLatMinSec();
-            String lonMinSec = gps.getLonMinSec();
-            altitude = altitude - gps.getGEOID(0); // GEOID 0 for Cresskill, 1 for Rutgers, other for Webster Field
-            double speed = gps.getSpeed()*2.23694; // Convert from m/s to mph
-            // 5th decimal place is about 0.8627m resolution at 38N Latitutde (Webster Field)
-            latitudeDegText.setText(String.format("%.5f", latitude));
-            latitudeMinSecText.setText(latMinSec);
-            longitudeDegText.setText(String.format("%.5f", longitude));
-            longitudeMinSecText.setText(lonMinSec);
-            altitudeText.setText(String.format("%.1f", altitude) + "m");
-            speedText.setText((int)speed + "mph");
-            lastUpdateTimeText.setText(gps.getLastUpdateTime());
-
-            //Toast.makeText(getApplicationContext(), "Your Location is - \nLat: " + latitude + "\nLong: " + longitude, Toast.LENGTH_LONG).show();
-        } else {
-            // can't get location
-            // GPS or Network is not enabled
-            // Ask user to enable GPS/network in settings
-            if (gps.getIsExternalGPSEnabled()) {
-                gps.showSettingsAlert();
-            }
-        }
-    }
-
-    public void getOnBoardAngles() {
-        if (sensor.getAccelerometerIsAvailable() && sensor.getMagneticFieldIsAvailable()) {
-            //Log.d("Angles", "Can get angles");
-            float azimuth = sensor.getAzimuth();
-            float pitch = -1*sensor.getPitch();
-            float roll = sensor.getRoll();
-
-            azimuthText.setText("" + Math.round(azimuth) + "\u00b0");
-            pitchText.setText("" + Math.round(pitch) + "\u00b0");
-            rollText.setText("" + Math.round(roll) + "\u00b0");
-        } else {
-            azimuthText.setText("Error");
-            pitchText.setText("Error");
-            rollText.setText("Error");
-        }
-    }
 
     // ------------------- DRONE DATA
     protected void updateSpeed() {

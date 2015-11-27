@@ -18,6 +18,7 @@
     <string name="help">Help</string>
     <string name="pixhawkdeets">Pixhawk details</string>
     <string name="PREFERENCES_FILE_NAME">preference</string>
+    <string name="deg">Degrees</string>
 
     <string-array name="drone_connection_types">
         <item>USB</item>
