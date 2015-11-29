@@ -92,6 +92,13 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
     private GeotagActivity geo;
     private DroneTracker droneTracker;
 
+    private float azimuth;
+    private float pitch;
+    private float roll;
+    private float altitude;
+    private double latitude;
+    private double longitude;
+
     private Context mContext;
     private boolean run;
 
@@ -180,7 +187,7 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
     private void getTrackers() {
         gps = new GPSTracker(mContext);
         sensor = new SensorTracker(mContext);
-        geo = new GeotagActivity(mContext, gps, sensor);
+        geo = new GeotagActivity(mContext);
         droneTracker = new DroneTracker(mContext);
     }
 
@@ -291,12 +298,12 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
         if(gps.canGetLocation()){
             //Log.d("GPS", "Can get location");
             // If the GPS if working
-            double latitude = gps.getLatitude();
-            double longitude = gps.getLongitude();
-            double altitude = gps.getAltitude();
+            latitude = gps.getLatitude();
+            longitude = gps.getLongitude();
+            altitude = (float)gps.getAltitude();
             String latMinSec = gps.getLatMinSec();
             String lonMinSec = gps.getLonMinSec();
-            altitude = altitude - gps.getGEOID(0); // GEOID 0 for Cresskill, 1 for Rutgers, other for Webster Field
+            altitude = altitude - (float)gps.getGEOID(0); // GEOID 0 for Cresskill, 1 for Rutgers, other for Webster Field
             double speed = gps.getSpeed()*2.23694; // Convert from m/s to mph
             // 5th decimal place is about 0.8627m resolution at 38N Latitutde (Webster Field)
             latitudeDegText.setText(String.format("%.5f", latitude));
@@ -321,9 +328,9 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
     public void getOnBoardAngles() {
         if (sensor.getAccelerometerIsAvailable() && sensor.getMagneticFieldIsAvailable()) {
             //Log.d("Angles", "Can get angles");
-            float azimuth = sensor.getAzimuth();
-            float pitch = -1*sensor.getPitch();
-            float roll = sensor.getRoll();
+            azimuth = sensor.getAzimuth();
+            pitch = -1*sensor.getPitch();
+            roll = sensor.getRoll();
 
             azimuthText.setText("" + Math.round(azimuth) + "\u00b0");
             pitchText.setText("" + Math.round(pitch) + "\u00b0");
@@ -336,7 +343,8 @@ public class DetailsFragment extends Fragment implements TowerListener, DroneLis
     }
 
     public void getImageGPSCoord() {
-        geo.calculateLocations(gps, sensor);
+        LatLong gpsLatLong = new LatLong(latitude, longitude);
+        geo.calculateLocations(gpsLatLong, altitude, azimuth, pitch, roll );
         BLgpsLat.setText(String.format("%.5f",geo.getBottomLeft().getLatitude()) + "\u00b0");
         BLgpsLon.setText(String.format("%.5f",geo.getBottomLeft().getLongitude()) + "\u00b0");
         BRgpsLat.setText(String.format("%.5f",geo.getBottomRight().getLatitude()) + "\u00b0");

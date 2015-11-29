@@ -61,13 +61,9 @@ public class GeotagActivity extends Activity {
 
     private LatLong TopLeft, TopRight, BottomLeft, BottomRight;
 
-    public GeotagActivity(Context context, GPSTracker gps, SensorTracker sensor) {
+    public GeotagActivity(Context context) {
         this.mContext = context;
         this.mainAct = (Activity)context;
-        this.mGPS = gps;
-        this.mSensor = sensor;
-        loadData();
-        gpsCoordinates = new Coordinates(gpsLongitude, gpsLatitude);
     }
 
     /**
@@ -98,21 +94,14 @@ public class GeotagActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
-
-
-    private void loadData() {
-        this.azimuth = mSensor.getAzimuth();
-        this.pitch = mSensor.getPitch();
-        this.roll = mSensor.getRoll();
-        this.gpsLatitude = mGPS.getLatitude();
-        this.gpsLongitude = mGPS.getLongitude();
-        this.altitude = mGPS.getAltitude();
-    }
-
-    public void calculateLocations(GPSTracker gps, SensorTracker sensor) {
-        mGPS = gps;
-        mSensor = sensor;
-        loadData();
+    
+    public void calculateLocations(LatLong gpsLatLong, double altitude, float azimuth, float pitch, float roll) {
+        this.gpsLatitude = gpsLatLong.getLatitude();
+        this.gpsLongitude = gpsLatLong.getLongitude();
+        this.azimuth = azimuth;
+        this.pitch = pitch;
+        this.roll = roll;
+        this.altitude = altitude;
 
         double x, y; // Distance in meter from GPS to picture edges
         double xlatm, xlonm, ylatm, ylonm; // Distances accounting for azimuth in meters
